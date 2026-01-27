@@ -1,10 +1,31 @@
 'use client'
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 // --- Particle Drift Effect ---
 export const BackgroundEffects: React.FC = () => {
+  const [particles, setParticles] = useState<Array<{
+    size: number;
+    left: number;
+    top: number;
+    duration: number;
+    delay: number;
+  }>>([]);
+
+  useEffect(() => {
+    // Generate particles only on client side to avoid hydration mismatch
+    setParticles(
+      Array.from({ length: 20 }, () => ({
+        size: Math.random() * 2 + 1,
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        duration: Math.random() * 10 + 10,
+        delay: Math.random() * 5,
+      }))
+    );
+  }, []);
+
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Soft Animated Gradient - Top Center */}
@@ -22,25 +43,25 @@ export const BackgroundEffects: React.FC = () => {
 
       {/* Particles */}
       <div className="absolute inset-0 w-full h-full">
-         {[...Array(20)].map((_, i) => (
+         {particles.map((particle, i) => (
             <motion.div
               key={i}
               className="absolute bg-white/20 rounded-full"
               style={{
-                width: Math.random() * 2 + 1 + 'px',
-                height: Math.random() * 2 + 1 + 'px',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
+                width: particle.size + 'px',
+                height: particle.size + 'px',
+                left: particle.left + '%',
+                top: particle.top + '%',
               }}
               animate={{
                 y: [0, -100],
                 opacity: [0, 0.5, 0],
               }}
               transition={{
-                duration: Math.random() * 10 + 10,
+                duration: particle.duration,
                 repeat: Infinity,
                 ease: "linear",
-                delay: Math.random() * 5
+                delay: particle.delay
               }}
             />
          ))}

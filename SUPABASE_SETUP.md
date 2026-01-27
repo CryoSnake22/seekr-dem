@@ -40,6 +40,7 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY_HERE
 ```
 
 **To get the Service Role Key:**
+
 - In Supabase dashboard → Settings → API
 - Look for **"service_role"** key (this is a secret key - never expose it!)
 - Copy and paste it into `.env.local`
@@ -96,6 +97,7 @@ For production later, you'll add your production URLs here.
 ## Step 9: Test Authentication (Next Step)
 
 After authentication pages are built, you'll be able to:
+
 - Sign up with email/password
 - Log in
 - Access protected dashboard routes
@@ -104,24 +106,29 @@ After authentication pages are built, you'll be able to:
 ## Troubleshooting
 
 ### "Failed to fetch"
+
 - Check that your `NEXT_PUBLIC_SUPABASE_URL` is correct
 - Make sure there are no extra spaces in `.env.local`
 
 ### "Invalid API key"
+
 - Verify you copied the full anon key (it's very long!)
 - Check for any line breaks or spaces
 
 ### RLS Policy Errors
+
 - Make sure you ran the schema.sql completely
 - Check the Supabase dashboard → Database → Policies to see if they're enabled
 
 ### Database Connection Issues
+
 - Wait a few minutes after creating the project
 - Try refreshing the Supabase dashboard
 
 ## Next Steps
 
 After completing this setup:
+
 1. Authentication pages will be created (`/login`, `/signup`)
 2. Middleware will protect `/dashboard` routes
 3. You'll be able to test the full authentication flow!
@@ -129,6 +136,7 @@ After completing this setup:
 ---
 
 **Files Created:**
+
 - ✅ `lib/supabase/client.ts` - Browser client
 - ✅ `lib/supabase/server.ts` - Server client
 - ✅ `middleware.ts` - Route protection

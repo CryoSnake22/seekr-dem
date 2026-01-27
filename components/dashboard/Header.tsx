@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Search, Bell } from 'lucide-react';
+import { UserMenu } from './UserMenu';
 
 interface HeaderProps {
   title?: string;
@@ -30,9 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', subtitle = 
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-black"></span>
         </button>
-        <div className="w-8 h-8 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center text-xs font-bold text-white">
-          JD
-        </div>
+        <UserMenu />
       </div>
     </header>
   );
