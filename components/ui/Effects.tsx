@@ -1,23 +1,25 @@
-import React, { useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+'use client'
+
+import React from 'react';
+import { motion } from 'framer-motion';
 
 // --- Particle Drift Effect ---
 export const BackgroundEffects: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Soft Animated Gradient - Top Center */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           opacity: [0.3, 0.5, 0.3],
           scale: [1, 1.2, 1],
         }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-primary/10 blur-[120px] rounded-full"
       />
-      
+
       {/* Secondary Gradient - Bottom Left */}
       <div className="absolute top-[40%] -left-[10%] w-[600px] h-[500px] bg-neutral-800/20 blur-[100px] rounded-full" />
-      
+
       {/* Particles */}
       <div className="absolute inset-0 w-full h-full">
          {[...Array(20)].map((_, i) => (
@@ -63,7 +65,6 @@ export const ButtonBeam: React.FC = () => (
 );
 
 // --- Cursor Proximity Glow Card ---
-// Simplified for performance: standard hover glow
 export const GlowCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => {
   return (
     <motion.div
