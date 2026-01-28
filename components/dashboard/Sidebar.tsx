@@ -10,6 +10,8 @@ import {
   LogOut,
   Code2,
   User,
+  FileText,
+  MessageSquare,
 } from "lucide-react";
 
 export const Sidebar: React.FC = () => {
@@ -21,6 +23,18 @@ export const Sidebar: React.FC = () => {
       href: "/dashboard",
       icon: LayoutDashboard,
       label: "Overview",
+    },
+    {
+      id: "resume",
+      href: "/resume",
+      icon: FileText,
+      label: "Resume",
+    },
+    {
+      id: "ai-chat",
+      href: "/ai-chat",
+      icon: MessageSquare,
+      label: "AI Chat",
     },
     {
       id: "skills-gap",
