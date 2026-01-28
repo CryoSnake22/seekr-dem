@@ -3,14 +3,19 @@
 import React from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
-export const MarketTrends: React.FC = () => {
-  const trends = [
-    { name: "Next.js", change: "+14%", isUp: true },
-    { name: "Tailwind CSS", change: "+8%", isUp: true },
-    { name: "Redux", change: "-5%", isUp: false },
-    { name: "Supabase", change: "+22%", isUp: true },
-  ];
+type Trend = {
+  name: string
+  value: string
+  priority: 'High' | 'Medium' | 'Low'
+}
 
+const priorityColor = {
+  High: 'text-emerald-400',
+  Medium: 'text-yellow-400',
+  Low: 'text-neutral-400',
+}
+
+export const MarketTrends: React.FC<{ trends: Trend[] }> = ({ trends }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -19,11 +24,14 @@ export const MarketTrends: React.FC = () => {
       </div>
 
       <div className="bg-[#0A0A0A] border border-white/5 rounded-xl p-4 space-y-4">
+        {trends.length === 0 && (
+          <div className="text-sm text-neutral-400">No market data yet.</div>
+        )}
         {trends.map((trend, i) => (
           <div key={i} className="flex items-center justify-between py-1">
             <span className="text-sm text-neutral-300">{trend.name}</span>
-            <span className={`text-xs font-mono ${trend.isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-              {trend.change}
+            <span className={`text-xs font-mono ${priorityColor[trend.priority]}`}>
+              {trend.value}
             </span>
           </div>
         ))}

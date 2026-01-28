@@ -1,7 +1,7 @@
 # Seekr - Project Status & Architecture
 
 **Last Updated:** January 27, 2026
-**Current Phase:** Phase 2 Complete - Ready for Phase 3 (Golden Resume System)
+**Current Phase:** Phase 3 Complete - Phase 4 (Skills Gap Analysis) In Progress
 
 ---
 
@@ -34,6 +34,19 @@
 - [x] **Navigation** - Updated from onClick handlers to Next.js Link components
 - [x] **Animations** - All Framer Motion effects preserved with 'use client' directives
 - [x] **Fixed hydration error** - Moved random particle generation to client-side useEffect
+
+### ✅ Phase 3: Golden Resume System (COMPLETE)
+- [x] **Profile CRUD** wired to Supabase (education, experience, skills, projects)
+- [x] **Profile UI** implemented with real forms and data loading
+- [x] **API routes** for profile resources (+ profile update endpoint)
+- [x] **Skills suggestions** powered by `skills_market_data`
+- [x] **Settings** profile update (name) wired to Supabase
+
+### ✅ Phase 4 (Partial): Dashboard + Tab Scaffolds (IN PROGRESS)
+- [x] **Dashboard overview** wired to Supabase (match score, gaps, trends, recommendations)
+- [x] **Skills Gap page** wired to Supabase with role filter + view all toggle
+- [x] **AI Projects page** wired to Supabase projects + recent prompt
+- [x] **Settings page** wired to Supabase profile data
 
 ### ✅ Phase 3: Supabase Backend (COMPLETE)
 - [x] **Database Schema**
@@ -87,10 +100,10 @@
 - **Rationale:** Simpler architecture, less boilerplate, better performance
 - **Impact:** Components fetch their own data, no global state complexity
 
-### 4. **Server Actions for Mutations (Not API Routes for Everything)**
-- **Decision:** Use Next.js server actions where appropriate, API routes for complex logic
-- **Rationale:** Simpler forms, built-in revalidation, better type safety
-- **Impact:** Less boilerplate, automatic loading states, progressive enhancement
+### 4. **API Routes for Profile Mutations**
+- **Decision:** Use RESTful API routes for profile CRUD + settings update
+- **Rationale:** Clear separation, easy to reuse across pages
+- **Impact:** Consistent backend contracts, easy to extend with validation and auditing
 
 ### 5. **Component Organization**
 - **Decision:** Split by feature/domain (landing/, dashboard/, ui/) not by type
@@ -128,10 +141,10 @@ seekr-dem/
 │   ├── (marketing)/         # Public landing page
 │   ├── (dashboard)/         # Protected dashboard pages
 │   │   ├── dashboard/       # Overview page
-│   │   ├── profile/         # Golden Resume (placeholder)
-│   │   ├── skills-gap/      # Skills analysis (placeholder)
-│   │   ├── projects/        # AI advisor (placeholder)
-│   │   ├── settings/        # Settings (placeholder)
+│   │   ├── profile/         # Golden Resume (functional)
+│   │   ├── skills-gap/      # Skills analysis (wired)
+│   │   ├── projects/        # AI advisor (wired to data)
+│   │   ├── settings/        # Settings (wired to data)
 │   │   └── market/          # Market data (placeholder)
 │   ├── api/
 │   │   └── auth/logout/     # Logout endpoint
@@ -143,6 +156,9 @@ seekr-dem/
 ├── components/
 │   ├── landing/             # Landing page sections
 │   ├── dashboard/           # Dashboard components
+│   ├── profile/             # Golden Resume forms
+│   ├── skills-gap/          # Skills gap UI widgets
+│   ├── settings/            # Settings UI widgets
 │   ├── ui/                  # Reusable UI components
 │   └── providers/           # (future: context providers)
 │
@@ -234,42 +250,27 @@ seekr-dem/
 - Navigation updated
 - Animations preserved
 
-### 🎯 **Phase 3: Golden Resume System** (Week 3) - NEXT
-**Priority: HIGH - User wants this functional first**
+### ✅ **Phase 3: Golden Resume System** (Week 3) - COMPLETE
+**Priority: HIGH - Core profile system**
 
-Tasks:
-- [ ] Profile forms for education
-- [ ] Profile forms for experience
-- [ ] Profile forms for skills
-- [ ] Profile forms for projects
-- [ ] API routes for CRUD operations
-- [ ] Profile page implementation
-- [ ] Data persistence to Supabase
-
-**Files to Create:**
-- `components/profile/EducationForm.tsx`
-- `components/profile/ExperienceForm.tsx`
-- `components/profile/SkillsForm.tsx`
-- `components/profile/ProjectsForm.tsx`
-- `app/api/user/education/route.ts` (+ [id]/route.ts)
-- `app/api/user/experience/route.ts` (+ [id]/route.ts)
-- `app/api/user/skills/route.ts` (+ [id]/route.ts)
-- `app/api/user/projects/route.ts` (+ [id]/route.ts)
-- `lib/supabase/queries/education.ts`
-- `lib/supabase/queries/experience.ts`
-- `lib/supabase/queries/skills.ts`
-- `lib/supabase/queries/projects.ts`
+Completed:
+- [x] Profile forms for education/experience/skills/projects
+- [x] API routes for CRUD operations
+- [x] Profile page implementation
+- [x] Data persistence to Supabase
+- [x] Skills suggestions from market data
 
 ### 🔜 **Phase 4: Skills Gap Analysis** (Week 4)
 **Priority: HIGH - Core feature**
 
-Tasks:
-- [ ] Match score calculator function
-- [ ] Skills gap API endpoint
-- [ ] Skills gap page with real data
-- [ ] Job role selector
-- [ ] Missing skills display
-- [ ] Match score history tracking
+In Progress:
+- [x] Skills gap page wired to Supabase with role filter + view all toggle
+- [x] Missing skills display from market data + user skills
+
+Next:
+- [ ] Match score calculator function (server-side)
+- [ ] Skills gap API endpoint (centralized logic)
+- [ ] Match score history tracking (write on profile updates)
 
 ### 🔜 **Phase 5: AI Project Advisor** (Week 5)
 **Priority: MEDIUM**
@@ -278,8 +279,8 @@ Tasks:
 - [ ] OpenAI integration
 - [ ] Chat interface
 - [ ] System prompt with user context
-- [ ] Project recommendations
-- [ ] Chat history persistence
+- [ ] Project recommendations (currently placeholder)
+- [ ] Chat history persistence (table exists)
 - [ ] Rate limiting for free tier
 
 ### 🔜 **Phase 6: Stripe Payments** (Week 6)
@@ -342,12 +343,12 @@ Tasks:
 **Current State:**
 - Server running at http://localhost:3000
 - Authentication fully working
-- Dashboard UI complete
+- Dashboard UI + tabs wired to Supabase data
 - Database schema deployed
-- Ready to build functional features
+- Ready to build full skills gap + AI advisor logic
 
 **Next Session:**
-Start with **Phase 3: Golden Resume System** to make the profile page functional with full CRUD operations.
+Start with **Phase 4: Skills Gap Analysis** to centralize match score + gap logic and persist history.
 
 **Command to Start Dev Server:**
 ```bash

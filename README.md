@@ -1,20 +1,46 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Seekr
 
-# Run and deploy your AI Studio app
+AI-powered career intelligence and resume optimization platform built with Next.js and Supabase.
 
-This contains everything you need to run your app locally.
+## Stack
 
-View your app in AI Studio: https://ai.studio/apps/drive/1wA-ewML2RgUI5PFt-3hzesYcmX4p14Km
+- Next.js 14 (App Router)
+- Supabase (Postgres + Auth + RLS)
+- Tailwind CSS
+- Framer Motion
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js + pnpm
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   pnpm install
+   ```
+2. Create `.env.local` with your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY_HERE
+   SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY_HERE
+   ```
+3. Run the dev server:
+   ```bash
+   pnpm dev
+   ```
+4. Open `http://localhost:3000`
+
+## Project Status
+
+See `PROJECT_STATUS.md` for the current phase, architecture notes, and next steps.
+
+## Key Docs
+
+- `SUPABASE_SETUP.md` - Supabase setup guide
+- `EMAIL_CONFIRMATION.md` - Email confirmation behavior
+
+## Useful Scripts
+
+- `pnpm dev` - Run the dev server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+
