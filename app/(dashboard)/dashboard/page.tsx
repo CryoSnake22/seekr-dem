@@ -26,7 +26,7 @@ export default async function DashboardPage() {
   const userId = userData.user.id
 
   const [skillsRes, marketRes, historyRes, trendsRes] = await Promise.all([
-    supabase.from('user_skills').select('skill_name, proficiency_level').eq('user_id', userId),
+    supabase.from('user_skills').select('skill_name, proficiency').eq('user_id', userId),
     supabase
       .from('skills_market_data')
       .select('job_role, skill_name, priority_level, frequency_percentage')
@@ -47,7 +47,7 @@ export default async function DashboardPage() {
 
   const userSkills: UserSkill[] = (skillsRes.data || []).map(skill => ({
     name: skill.skill_name,
-    proficiency_level: skill.proficiency_level || undefined
+    proficiency_level: skill.proficiency || undefined
   }))
   const marketSkills = (marketRes.data || []) as MarketSkillWithRole[]
 

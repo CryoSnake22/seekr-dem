@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
           {
             user_id: user.id,
             skill_name: skill.skill_name,
-            proficiency_level: skill.proficiency_level,
+            proficiency: skill.proficiency_level,
           },
           { onConflict: 'user_id,skill_name', ignoreDuplicates: true }
         )

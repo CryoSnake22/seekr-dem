@@ -88,12 +88,7 @@ export async function getMatchScoreHistory(
     query = query.eq('job_role', jobRole)
   }
 
-  const { data, error } = await supabase
-    .from('match_score_history')
-    .select('*')
-    .eq('user_id', userId)
-    .order('recorded_at', { ascending: false })
-    .limit(limit)
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching match score history:', error)
