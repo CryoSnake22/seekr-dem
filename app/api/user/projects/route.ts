@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { jsonError, jsonSuccess } from '@/lib/api/responses'
 import type { Database } from '@/types/database'
 import type { NextRequest } from 'next/server'
+import { addProjectSkills, getProjectsWithSkills } from '@/lib/supabase/queries/project-skills'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
 type ProjectInsert = Database['public']['Tables']['projects']['Insert']
@@ -53,17 +54,12 @@ export async function GET() {
     return jsonError('Unauthorized', 401, 'auth')
   }
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('user_id', userData.user.id)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    return jsonError(error.message, 500, error.code)
+  try {
+    const projects = await getProjectsWithSkills(supabase, userData.user.id)
+    return jsonSuccess(projects)
+  } catch (error) {
+    return jsonError('Failed to fetch projects', 500, 'database_error')
   }
-
-  return jsonSuccess<ProjectRow[]>(data || [])
 }
 
 export async function POST(request: NextRequest) {
@@ -98,6 +94,16 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return jsonError(error.message, 500, error.code)
+  }
+
+  // Add project skills if provided
+  if (body && Array.isArray(body.project_skills) && body.project_skills.length > 0) {
+    try {
+      await addProjectSkills(supabase, data.id, body.project_skills)
+    } catch (skillsError) {
+      console.error('Error adding project skills:', skillsError)
+      // Don't fail the request if skills fail to save
+    }
   }
 
   return jsonSuccess<ProjectRow>(data)

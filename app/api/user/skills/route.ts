@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { jsonError, jsonSuccess } from '@/lib/api/responses'
 import type { Database } from '@/types/database'
 import type { NextRequest } from 'next/server'
+import { calculateMatchScoreForRole } from '@/lib/utils/match-score'
+import { recordMatchScoresForRoles } from '@/lib/supabase/queries/match-score-history'
 
 type SkillRow = Database['public']['Tables']['user_skills']['Row']
 type SkillInsert = Database['public']['Tables']['user_skills']['Insert']
@@ -79,6 +81,27 @@ export async function POST(request: NextRequest) {
   if (error) {
     const status = error.code === '23505' ? 409 : 500
     return jsonError(error.message, status, error.code)
+  }
+
+  // Record match score history for top roles
+  try {
+    const topRoles = ['Software Engineer', 'Frontend Developer', 'Backend Developer']
+    const roleScores = await Promise.all(
+      topRoles.map(async (role) => {
+        const result = await calculateMatchScoreForRole(supabase, userData.user.id, role)
+        return { role, score: result.matchScore }
+      })
+    )
+
+    await recordMatchScoresForRoles(
+      supabase,
+      userData.user.id,
+      roleScores,
+      [input.skill_name]
+    )
+  } catch (historyError) {
+    // Log error but don't fail the request
+    console.error('Failed to record match score history:', historyError)
   }
 
   return jsonSuccess<SkillRow>(data)

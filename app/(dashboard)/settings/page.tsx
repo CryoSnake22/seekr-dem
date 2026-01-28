@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import ProfilePreferences from '@/components/settings/ProfilePreferences'
+import Link from 'next/link'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -81,6 +82,22 @@ export default async function SettingsPage() {
             <button className="w-full rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200">
               Upgrade plan
             </button>
+          </section>
+
+          <section className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-white">Integrations</h2>
+              <p className="text-sm text-neutral-400">Connect external services.</p>
+            </div>
+            <Link
+              href="/settings/integrations"
+              className="w-full rounded-lg border border-white/10 px-4 py-2.5 text-sm text-neutral-200 hover:bg-white/10 flex items-center justify-between"
+            >
+              <span>Manage integrations</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </section>
 
           <section className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-4">

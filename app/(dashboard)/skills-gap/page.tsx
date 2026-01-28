@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import TopGapsSection from '@/components/skills-gap/TopGapsSection'
+import { calculateMatchScore, getMissingSkills, type MarketSkill, type UserSkill } from '@/lib/utils/match-score'
 
-type MarketSkill = {
+type MarketSkillWithRole = {
   job_role: string
   skill_name: string
   priority_level: 'High' | 'Medium' | 'Low' | null
@@ -18,12 +19,6 @@ type Gap = {
   skill: string
   priority: 'High' | 'Medium' | 'Low'
   demand: string
-}
-
-const priorityWeight = {
-  High: 3,
-  Medium: 2,
-  Low: 1,
 }
 
 export default async function SkillsGapPage() {
@@ -47,7 +42,7 @@ export default async function SkillsGapPage() {
   const userId = userData.user.id
 
   const [skillsRes, marketRes] = await Promise.all([
-    supabase.from('user_skills').select('skill_name').eq('user_id', userId),
+    supabase.from('user_skills').select('skill_name, proficiency_level').eq('user_id', userId),
     supabase
       .from('skills_market_data')
       .select('job_role, skill_name, priority_level, frequency_percentage')
@@ -55,21 +50,26 @@ export default async function SkillsGapPage() {
       .limit(300),
   ])
 
-  const userSkills = new Set((skillsRes.data || []).map((skill) => skill.skill_name.toLowerCase()))
-  const marketSkills = (marketRes.data || []) as MarketSkill[]
+  const userSkills: UserSkill[] = (skillsRes.data || []).map(skill => ({
+    name: skill.skill_name,
+    proficiency_level: skill.proficiency_level || undefined
+  }))
+  const marketSkills = (marketRes.data || []) as MarketSkillWithRole[]
 
   const roleMap = marketSkills.reduce<Record<string, MarketSkill[]>>((acc, item) => {
-    if (!acc[item.job_role]) {
-      return { ...acc, [item.job_role]: [item] }
+    const marketSkill: MarketSkill = {
+      skill_name: item.skill_name,
+      frequency_percentage: item.frequency_percentage
     }
-    return { ...acc, [item.job_role]: [...acc[item.job_role], item] }
+    if (!acc[item.job_role]) {
+      return { ...acc, [item.job_role]: [marketSkill] }
+    }
+    return { ...acc, [item.job_role]: [...acc[item.job_role], marketSkill] }
   }, {})
 
   const roleStatsList = Object.entries(roleMap)
     .map(([role, skills]) => {
-      const total = skills.length || 1
-      const overlap = skills.filter((skill) => userSkills.has(skill.skill_name.toLowerCase())).length
-      const coverage = Math.round((overlap / total) * 100)
+      const coverage = calculateMatchScore(userSkills, skills)
       return { title: role, coverage }
     })
     .sort((a, b) => b.coverage - a.coverage)
@@ -103,19 +103,14 @@ export default async function SkillsGapPage() {
   })
 
   const gapsByRole = roles.reduce<Record<string, Gap[]>>((acc, role) => {
-    const roleSkills = roleMap[role] || []
-    const gaps = roleSkills
-      .filter((skill) => !userSkills.has(skill.skill_name.toLowerCase()))
-      .sort((a, b) => {
-        const priorityDiff = (priorityWeight[b.priority_level || 'Low'] ?? 1) - (priorityWeight[a.priority_level || 'Low'] ?? 1)
-        if (priorityDiff !== 0) return priorityDiff
-        return b.frequency_percentage - a.frequency_percentage
-      })
-      .map<Gap>((skill) => ({
-        skill: skill.skill_name,
-        priority: (skill.priority_level || 'Low') as Gap['priority'],
-        demand: `${skill.frequency_percentage.toFixed(0)}% of roles`,
-      }))
+    const roleMarketSkills = roleMap[role] || []
+    const missing = getMissingSkills(userSkills, roleMarketSkills)
+
+    const gaps = missing.map<Gap>((gap) => ({
+      skill: gap.name,
+      priority: gap.priority,
+      demand: `${gap.frequency.toFixed(0)}% of roles`,
+    }))
 
     return { ...acc, [role]: gaps }
   }, {})

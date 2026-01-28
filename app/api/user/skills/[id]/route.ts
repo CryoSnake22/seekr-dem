@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { jsonError, jsonSuccess } from '@/lib/api/responses'
 import type { Database } from '@/types/database'
 import type { NextRequest } from 'next/server'
+import { calculateMatchScoreForRole } from '@/lib/utils/match-score'
+import { recordMatchScoresForRoles } from '@/lib/supabase/queries/match-score-history'
 
 type SkillRow = Database['public']['Tables']['user_skills']['Row']
 type SkillUpdate = Database['public']['Tables']['user_skills']['Update']
@@ -59,6 +61,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return jsonError(error.message, status, error.code)
   }
 
+  // Record match score history for top roles after update
+  try {
+    const topRoles = ['Software Engineer', 'Frontend Developer', 'Backend Developer']
+    const roleScores = await Promise.all(
+      topRoles.map(async (role) => {
+        const result = await calculateMatchScoreForRole(supabase, userData.user.id, role)
+        return { role, score: result.matchScore }
+      })
+    )
+
+    await recordMatchScoresForRoles(
+      supabase,
+      userData.user.id,
+      roleScores
+    )
+  } catch (historyError) {
+    console.error('Failed to record match score history:', historyError)
+  }
+
   return jsonSuccess<SkillRow>(data)
 }
 
@@ -78,6 +99,25 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 
   if (error) {
     return jsonError(error.message, 500, error.code)
+  }
+
+  // Record match score history for top roles after deletion
+  try {
+    const topRoles = ['Software Engineer', 'Frontend Developer', 'Backend Developer']
+    const roleScores = await Promise.all(
+      topRoles.map(async (role) => {
+        const result = await calculateMatchScoreForRole(supabase, userData.user.id, role)
+        return { role, score: result.matchScore }
+      })
+    )
+
+    await recordMatchScoresForRoles(
+      supabase,
+      userData.user.id,
+      roleScores
+    )
+  } catch (historyError) {
+    console.error('Failed to record match score history:', historyError)
   }
 
   return jsonSuccess({ id: params.id })

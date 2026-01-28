@@ -6,6 +6,7 @@ import { AIAdvisorCard } from '@/components/dashboard/AIAdvisorCard'
 import { SkillsGapList } from '@/components/dashboard/SkillsGapList'
 import { RecommendedProjects } from '@/components/dashboard/RecommendedProjects'
 import { MarketTrends } from '@/components/dashboard/MarketTrends'
+import MatchScoreChart from '@/components/dashboard/MatchScoreChart'
 
 type RoleStat = {
   role: string
@@ -68,6 +69,8 @@ export default function DashboardOverview({
         <MatchScoreCard roleLabel={roleLabel} score={scoreLabel} deltaLabel={deltaLabel} />
         <AIAdvisorCard missingSkills={missingSkills} />
       </div>
+
+      <MatchScoreChart />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <SkillsGapList

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { jsonError, jsonSuccess } from '@/lib/api/responses'
 import type { Database } from '@/types/database'
 import type { NextRequest } from 'next/server'
+import { updateProjectSkills } from '@/lib/supabase/queries/project-skills'
 
 type ProjectRow = Database['public']['Tables']['projects']['Row']
 type ProjectUpdate = Database['public']['Tables']['projects']['Update']
@@ -79,6 +80,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   if (error) {
     return jsonError(error.message, 500, error.code)
+  }
+
+  // Update project skills if provided
+  if (body && Array.isArray(body.project_skills)) {
+    try {
+      await updateProjectSkills(supabase, params.id, body.project_skills)
+    } catch (skillsError) {
+      console.error('Error updating project skills:', skillsError)
+      // Don't fail the request if skills fail to update
+    }
   }
 
   return jsonSuccess<ProjectRow>(data)
