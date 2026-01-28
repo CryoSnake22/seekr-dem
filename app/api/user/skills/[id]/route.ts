@@ -33,7 +33,10 @@ function normalizeSkillUpdate(body: Record<string, unknown> | null): SkillUpdate
   return updates
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -41,6 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return jsonError('Unauthorized', 401, 'auth')
   }
 
+  const { id } = await params
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null
   const updates = normalizeSkillUpdate(body)
 
@@ -51,7 +55,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const { data, error } = await supabase
     .from('user_skills')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
     .select()
     .single()
@@ -83,7 +87,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return jsonSuccess<SkillRow>(data)
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -91,10 +98,11 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     return jsonError('Unauthorized', 401, 'auth')
   }
 
+  const { id } = await params
   const { error } = await supabase
     .from('user_skills')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
 
   if (error) {
@@ -120,5 +128,5 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     console.error('Failed to record match score history:', historyError)
   }
 
-  return jsonSuccess({ id: params.id })
+  return jsonSuccess({ id })
 }

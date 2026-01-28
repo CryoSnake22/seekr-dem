@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -55,15 +58,15 @@ export async function GET() {
     const historyByRole = (historyData || []).reduce<
       Record<string, Array<{ date: string; score: number }>>
     >((acc, record) => {
+      const recordedAt = new Date(record.recorded_at);
+      const dateKey = recordedAt.toISOString().slice(0, 10);
+      const score = Number(record.match_score);
       if (!acc[record.job_role]) {
         acc[record.job_role] = [];
       }
       acc[record.job_role].push({
-        date: new Date(record.recorded_at).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
-        score: record.match_score,
+        date: dateKey,
+        score,
       });
       return acc;
     }, {});

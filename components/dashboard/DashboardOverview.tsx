@@ -70,14 +70,13 @@ export default function DashboardOverview({
         <AIAdvisorCard missingSkills={missingSkills} />
       </div>
 
-      <MatchScoreChart />
+      <MatchScoreChart roles={roles} selectedRole={selectedRole} onRoleChange={setSelectedRole} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <SkillsGapList
           roles={roles}
           gapsByRole={gapsByRole}
           selectedRole={selectedRole}
-          onRoleChange={setSelectedRole}
         />
         <MarketTrends trends={trends} />
       </div>

@@ -33,15 +33,15 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 border-r border-white/10 flex flex-col bg-black/40 backdrop-blur-xl">
+    <aside className="w-60 border-r border-white/10 flex flex-col bg-black/40 backdrop-blur-xl">
       <Link
         href="/"
-        className="p-6 border-b border-white/5 flex items-center gap-3 hover:opacity-80 transition-opacity"
+        className="p-5 border-b border-white/5 flex items-center gap-3 hover:opacity-80 transition-opacity"
       >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-emerald-900 flex items-center justify-center border border-white/10">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-emerald-900 flex items-center justify-center border border-white/10">
           <span className="font-bold text-white">S</span>
         </div>
-        <span className="font-bold text-lg tracking-tight">Seekr</span>
+        <span className="font-bold text-base tracking-tight">Seekr</span>
       </Link>
 
       <nav className="flex-1 p-4 space-y-1">

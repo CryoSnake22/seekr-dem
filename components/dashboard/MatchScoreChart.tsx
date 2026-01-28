@@ -26,6 +26,12 @@ interface ProgressData {
   daysActive: number
 }
 
+type MatchScoreChartProps = {
+  roles: string[]
+  selectedRole: string
+  onRoleChange: (role: string) => void
+}
+
 const ROLE_COLORS = {
   'Software Engineer': '#8B5CF6',
   'Frontend Developer': '#10B981',
@@ -45,15 +51,16 @@ const MILESTONES = [
   { value: 95, label: '95% - Excellent', color: '#8B5CF6' },
 ]
 
-export default function MatchScoreChart() {
+export default function MatchScoreChart({ roles, selectedRole, onRoleChange }: MatchScoreChartProps) {
   const [data, setData] = useState<ProgressData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
 
   useEffect(() => {
     async function fetchProgress() {
       try {
-        const response = await fetch('/api/progress')
+        const response = await fetch('/api/progress', { cache: 'no-store' })
         if (!response.ok) {
           throw new Error('Failed to fetch progress data')
         }
@@ -89,28 +96,38 @@ export default function MatchScoreChart() {
     )
   }
 
-  // Merge all role histories into a single dataset
+  // Merge all role histories into a single dataset (latest score per date)
+  const roleSeries = Object.entries(data.history).reduce<Record<string, Map<string, number>>>(
+    (acc, [role, points]) => {
+      const byDate = new Map<string, number>()
+      points.forEach((point) => {
+        byDate.set(point.date, point.score)
+      })
+      acc[role] = byDate
+      return acc
+    },
+    {}
+  )
+
   const allDates = new Set<string>()
-  Object.values(data.history).forEach((points) => {
-    points.forEach((point) => allDates.add(point.date))
+  Object.values(roleSeries).forEach((points) => {
+    points.forEach((_value, date) => allDates.add(date))
   })
 
-  const sortedDates = Array.from(allDates).sort((a, b) => {
-    return new Date(a).getTime() - new Date(b).getTime()
-  })
+  const sortedDates = Array.from(allDates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+
+  const visibleRoles = selectedRole === 'All' ? Object.keys(roleSeries) : [selectedRole]
 
   const chartData = sortedDates.map((date) => {
     const dataPoint: Record<string, string | number> = { date }
-    Object.entries(data.history).forEach(([role, points]) => {
-      const point = points.find((p) => p.date === date)
-      if (point) {
-        dataPoint[role] = point.score
+    visibleRoles.forEach((role) => {
+      const score = roleSeries[role]?.get(date)
+      if (score !== undefined) {
+        dataPoint[role] = score
       }
     })
     return dataPoint
   })
-
-  const roles = Object.keys(data.history)
 
   if (chartData.length === 0) {
     return (
@@ -130,11 +147,23 @@ export default function MatchScoreChart() {
 
   return (
     <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-white mb-2">Match Score Progress</h2>
-        <p className="text-sm text-neutral-400">
-          Track your skill development over time
-        </p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-white mb-2">Match Score Progress</h2>
+          <p className="text-sm text-neutral-400">
+            Track your skill development over time
+          </p>
+        </div>
+        <select
+          value={selectedRole}
+          onChange={(event) => onRoleChange(event.target.value)}
+          className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white"
+        >
+          <option value="All">All roles</option>
+          {roles.map((role) => (
+            <option key={role} value={role}>{role}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -164,6 +193,7 @@ export default function MatchScoreChart() {
               dataKey="date"
               stroke="#9CA3AF"
               style={{ fontSize: '12px' }}
+              tickFormatter={(value) => dateFormatter.format(new Date(value))}
             />
             <YAxis
               domain={[0, 100]}
@@ -179,6 +209,7 @@ export default function MatchScoreChart() {
                 color: '#F9FAFB',
               }}
               labelStyle={{ color: '#9CA3AF' }}
+              labelFormatter={(value) => dateFormatter.format(new Date(value))}
             />
             <Legend
               wrapperStyle={{ fontSize: '12px', color: '#9CA3AF' }}
@@ -192,7 +223,7 @@ export default function MatchScoreChart() {
                 strokeOpacity={0.3}
               />
             ))}
-            {roles.map((role) => (
+            {visibleRoles.map((role) => (
               <Line
                 key={role}
                 type="monotone"

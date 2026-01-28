@@ -11,7 +11,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', subtitle = 'Overview' }) => {
   return (
-    <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 backdrop-blur-sm sticky top-0 z-20">
+    <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/20 backdrop-blur-sm sticky top-0 z-20">
       <div className="flex items-center gap-4 text-sm text-neutral-500">
         <span>{title}</span>
         <span>/</span>
@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ title = 'Dashboard', subtitle = 
           <input
             type="text"
             placeholder="Search jobs, skills..."
-            className="h-9 w-64 bg-white/5 border border-white/10 rounded-full pl-10 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+            className="h-8 w-60 bg-white/5 border border-white/10 rounded-full pl-10 pr-4 text-sm text-white placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
           />
         </div>
         <button className="relative p-2 text-neutral-400 hover:text-white transition-colors">

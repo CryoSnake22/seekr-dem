@@ -12,7 +12,6 @@ type SkillsGapListProps = {
   roles: string[]
   gapsByRole: Record<string, SkillGap[]>
   selectedRole: string
-  onRoleChange: (role: string) => void
 }
 
 const priorityStyles = {
@@ -27,7 +26,7 @@ const priorityOrder = {
   Low: 2,
 }
 
-export const SkillsGapList: React.FC<SkillsGapListProps> = ({ roles, gapsByRole, selectedRole, onRoleChange }) => {
+export const SkillsGapList: React.FC<SkillsGapListProps> = ({ roles, gapsByRole, selectedRole }) => {
   const [showAll, setShowAll] = useState(false)
 
   const gapList = useMemo(() => {
@@ -48,26 +47,19 @@ export const SkillsGapList: React.FC<SkillsGapListProps> = ({ roles, gapsByRole,
   return (
     <div className="lg:col-span-2 space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h3 className="text-lg font-semibold">Critical Skill Gaps</h3>
-        <div className="flex items-center gap-3">
-          <select
-            value={selectedRole}
-            onChange={(event) => onRoleChange(event.target.value)}
-            className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white"
-          >
-            <option value="All">All roles</option>
-            {roles.map((role) => (
-              <option key={role} value={role}>{role}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => setShowAll((prev) => !prev)}
-            className="text-xs text-neutral-400 hover:text-white"
-          >
-            {showAll ? 'Show less' : 'View all'}
-          </button>
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Critical Skill Gaps</h3>
+          <p className="text-xs text-neutral-500">
+            {selectedRole === 'All' ? 'Across all roles' : `Focused on ${selectedRole}`}
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setShowAll((prev) => !prev)}
+          className="text-xs text-neutral-400 hover:text-white"
+        >
+          {showAll ? 'Show less' : 'View all'}
+        </button>
       </div>
 
       <div className="space-y-3">
