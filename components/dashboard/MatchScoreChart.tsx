@@ -109,16 +109,44 @@ export default function MatchScoreChart({ roles, selectedRole, onRoleChange }: M
     {}
   )
 
-  const allDates = new Set<string>()
-  Object.values(roleSeries).forEach((points) => {
-    points.forEach((_value, date) => allDates.add(date))
-  })
-
-  const sortedDates = Array.from(allDates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-
   const visibleRoles = selectedRole === 'All' ? Object.keys(roleSeries) : [selectedRole]
 
-  const chartData = sortedDates.map((date) => {
+  // Find the earliest date across all visible roles for baseline
+  const allDates = new Set<string>()
+  Object.entries(roleSeries).forEach(([role, points]) => {
+    if (visibleRoles.includes(role)) {
+      points.forEach((_value, date) => allDates.add(date))
+    }
+  })
+
+  // Add baseline point at 0 for each role that has data
+  // Baseline date is 1 day before the earliest actual data point
+  let baselineDate: string | null = null
+  if (allDates.size > 0) {
+    const sortedDates = Array.from(allDates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    const earliestDate = new Date(sortedDates[0])
+    // Set baseline to 1 day before the earliest date
+    earliestDate.setDate(earliestDate.getDate() - 1)
+    baselineDate = earliestDate.toISOString().slice(0, 10)
+  }
+
+  // Build chart data with baseline
+  const chartDataMap = new Map<string, Record<string, string | number>>()
+
+  // Add baseline point if we have data
+  if (baselineDate) {
+    const baselinePoint: Record<string, string | number> = { date: baselineDate }
+    visibleRoles.forEach((role) => {
+      // Only add baseline (0) for roles that have actual data
+      if (roleSeries[role] && roleSeries[role].size > 0) {
+        baselinePoint[role] = 0
+      }
+    })
+    chartDataMap.set(baselineDate, baselinePoint)
+  }
+
+  // Add all actual data points
+  allDates.forEach((date) => {
     const dataPoint: Record<string, string | number> = { date }
     visibleRoles.forEach((role) => {
       const score = roleSeries[role]?.get(date)
@@ -126,8 +154,13 @@ export default function MatchScoreChart({ roles, selectedRole, onRoleChange }: M
         dataPoint[role] = score
       }
     })
-    return dataPoint
+    chartDataMap.set(date, dataPoint)
   })
+
+  // Convert to array and sort by date
+  const chartData = Array.from(chartDataMap.values()).sort(
+    (a, b) => new Date(a.date as string).getTime() - new Date(b.date as string).getTime()
+  )
 
   if (chartData.length === 0) {
     return (
