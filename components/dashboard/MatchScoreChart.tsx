@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts'
+import { RoleSelector } from '@/components/dashboard/RoleSelector'
 
 interface HistoryPoint {
   date: string
@@ -26,16 +27,20 @@ interface ProgressData {
   daysActive: number
 }
 
+type RoleStat = { role: string; coverage: number }
+
 type MatchScoreChartProps = {
   roles: string[]
+  roleStats?: RoleStat[]
   selectedRole: string
   onRoleChange: (role: string) => void
+  onManageRoles?: () => void
   currentScore?: number
   relevantSkillsCount?: number
   isAverage?: boolean
 }
 
-const ROLE_COLORS = {
+const ROLE_COLORS: Record<string, string> = {
   'Software Engineer': '#8B5CF6',
   'Frontend Developer': '#10B981',
   'Backend Developer': '#F59E0B',
@@ -43,9 +48,13 @@ const ROLE_COLORS = {
   'DevOps Engineer': '#3B82F6',
   'Data Engineer': '#EF4444',
   'Mobile Developer': '#14B8A6',
-} as Record<string, string>
+}
 
-const DEFAULT_COLOR = '#6366F1'
+const FALLBACK_PALETTE = ['#6366F1', '#A855F7', '#14B8A6', '#F97316', '#E11D48', '#0EA5E9', '#84CC16', '#EC4899']
+
+function getRoleColor(role: string, index: number): string {
+  return ROLE_COLORS[role] ?? FALLBACK_PALETTE[index % FALLBACK_PALETTE.length]
+}
 
 const MILESTONES = [
   { value: 60, label: '60% - Entry Level', color: '#6B7280' },
@@ -56,8 +65,10 @@ const MILESTONES = [
 
 export default function MatchScoreChart({ 
   roles, 
+  roleStats = [],
   selectedRole, 
   onRoleChange,
+  onManageRoles,
   currentScore,
   relevantSkillsCount,
   isAverage = false
@@ -119,49 +130,56 @@ export default function MatchScoreChart({
     {}
   )
 
-  const visibleRoles = selectedRole === 'All' ? Object.keys(roleSeries) : [selectedRole]
+  // Use same role set as parent so "All" average matches card
+  const visibleRoles = selectedRole === 'All' ? roles : [selectedRole]
+  const coverageByRole = Object.fromEntries(roleStats.map((s) => [s.role, s.coverage]))
 
-  // Find the earliest date across all visible roles for baseline
+  // Find the earliest date across visible roles that have history
   const allDates = new Set<string>()
-  Object.entries(roleSeries).forEach(([role, points]) => {
-    if (visibleRoles.includes(role)) {
-      points.forEach((_value, date) => allDates.add(date))
-    }
+  visibleRoles.forEach((role) => {
+    const points = roleSeries[role]
+    if (points) points.forEach((_value, date) => allDates.add(date))
   })
 
-  // Add baseline point at 0 for each role that has data
-  // Baseline date is 1 day before the earliest actual data point
-  let baselineDate: string | null = null
-  if (allDates.size > 0) {
-    const sortedDates = Array.from(allDates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    const earliestDate = new Date(sortedDates[0])
-    // Set baseline to 1 day before the earliest date
-    earliestDate.setDate(earliestDate.getDate() - 1)
-    baselineDate = earliestDate.toISOString().slice(0, 10)
-  }
+  // For roles with no history, add today so we have one point (keeps "All" in sync with card)
+  const today = new Date().toISOString().slice(0, 10)
+  visibleRoles.forEach((role) => {
+    if (!roleSeries[role] || roleSeries[role].size === 0) allDates.add(today)
+  })
 
-  // Build chart data with baseline
+  const sortedDates = Array.from(allDates).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  const earliestDate = sortedDates[0]
+  const baselineDate = earliestDate
+    ? (() => {
+        const d = new Date(earliestDate)
+        d.setDate(d.getDate() - 1)
+        return d.toISOString().slice(0, 10)
+      })()
+    : null
+
   const chartDataMap = new Map<string, Record<string, string | number>>()
 
-  // Add baseline point if we have data
   if (baselineDate) {
     const baselinePoint: Record<string, string | number> = { date: baselineDate }
     visibleRoles.forEach((role) => {
-      // Only add baseline (0) for roles that have actual data
-      if (roleSeries[role] && roleSeries[role].size > 0) {
-        baselinePoint[role] = 0
-      }
+      baselinePoint[role] = 0
     })
     chartDataMap.set(baselineDate, baselinePoint)
   }
 
-  // Add all actual data points
-  allDates.forEach((date) => {
+  sortedDates.forEach((date) => {
     const dataPoint: Record<string, string | number> = { date }
     visibleRoles.forEach((role) => {
       const score = roleSeries[role]?.get(date)
+      const hasHistory = roleSeries[role] && roleSeries[role].size > 0
       if (score !== undefined) {
         dataPoint[role] = score
+      } else if (date === today && coverageByRole[role] !== undefined) {
+        dataPoint[role] = coverageByRole[role]
+      } else if (!hasHistory) {
+        // Roles with no history: give a value at every date so their line renders (0 until today, then coverage)
+        const coverage = coverageByRole[role]
+        dataPoint[role] = date >= today && coverage !== undefined ? coverage : 0
       }
     })
     chartDataMap.set(date, dataPoint)
@@ -197,23 +215,36 @@ export default function MatchScoreChart({
             Track your skill development over time
           </p>
         </div>
-        <select
-          value={selectedRole}
-          onChange={(event) => onRoleChange(event.target.value)}
-          className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white"
-        >
-          <option value="All">All roles</option>
-          {roles.map((role) => (
-            <option key={role} value={role}>{role}</option>
-          ))}
-        </select>
+        {onManageRoles ? (
+          <RoleSelector
+            roles={roles}
+            selectedRole={selectedRole}
+            onRoleChange={onRoleChange}
+            onManageRoles={onManageRoles}
+          />
+        ) : (
+          <select
+            value={selectedRole}
+            onChange={(event) => onRoleChange(event.target.value)}
+            className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-xs text-white"
+          >
+            <option value="All">All roles</option>
+            {roles.map((role) => (
+              <option key={role} value={role}>{role}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
           <p className="text-xs text-neutral-400">{isAverage ? 'Average Score' : 'Current Score'}</p>
           <p className="text-2xl font-bold text-primary mt-1">
-            {currentScore !== undefined ? `${currentScore.toFixed(1)}%` : (data?.currentMatchScore ?? 0)}%
+            {(() => {
+              const raw = currentScore !== undefined ? currentScore : (data?.currentMatchScore ?? 0)
+              const num = typeof raw === 'number' ? raw : Number(raw) || 0
+              return `${num.toFixed(1)}%`
+            })()}
           </p>
         </div>
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
@@ -246,6 +277,7 @@ export default function MatchScoreChart({
               domain={[0, 100]}
               stroke="#9CA3AF"
               style={{ fontSize: '12px' }}
+              tickFormatter={(value) => `${Number(value).toFixed(1)}%`}
               label={{ value: 'Match Score (%)', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
             />
             <Tooltip
@@ -257,9 +289,11 @@ export default function MatchScoreChart({
               }}
               labelStyle={{ color: '#9CA3AF' }}
               labelFormatter={(value) => dateFormatter.format(new Date(value))}
+              formatter={(value: number, name: string) => [`${Number(value).toFixed(1)}%`, name]}
             />
             <Legend
-              wrapperStyle={{ fontSize: '12px', color: '#9CA3AF' }}
+              wrapperStyle={{ fontSize: '12px', color: '#9CA3AF', width: '100%', whiteSpace: 'normal' }}
+              formatter={(value) => <span className="inline-block mr-4 mb-1">{value}</span>}
             />
             {MILESTONES.map((milestone) => (
               <ReferenceLine
@@ -270,12 +304,12 @@ export default function MatchScoreChart({
                 strokeOpacity={0.3}
               />
             ))}
-            {visibleRoles.map((role) => (
+            {visibleRoles.map((role, index) => (
               <Line
                 key={role}
                 type="monotone"
                 dataKey={role}
-                stroke={ROLE_COLORS[role] || DEFAULT_COLOR}
+                stroke={getRoleColor(role, index)}
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}

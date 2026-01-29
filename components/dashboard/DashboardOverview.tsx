@@ -7,6 +7,9 @@ import { SkillsGapList } from '@/components/dashboard/SkillsGapList'
 import { RecommendedProjects } from '@/components/dashboard/RecommendedProjects'
 import { MarketTrends } from '@/components/dashboard/MarketTrends'
 import MatchScoreChart from '@/components/dashboard/MatchScoreChart'
+import { RoleSelector } from '@/components/dashboard/RoleSelector'
+import { RoleManagementDialog } from '@/components/dashboard/RoleManagementDialog'
+import { useSelectedRoles } from '@/hooks/useSelectedRoles'
 
 type RoleStat = {
   role: string
@@ -52,6 +55,8 @@ export default function DashboardOverview({
 }: DashboardOverviewProps) {
   const roles = useMemo(() => roleStats.map((entry) => entry.role), [roleStats])
   const [selectedRole, setSelectedRole] = useState(roles[0] ?? 'All')
+  const [manageRolesOpen, setManageRolesOpen] = useState(false)
+  const { saveRoles, isSaving, error: saveError } = useSelectedRoles()
 
   // Calculate average match score when "All" is selected
   const averageScore = useMemo(() => {
@@ -147,11 +152,22 @@ export default function DashboardOverview({
 
       <MatchScoreChart 
         roles={roles} 
+        roleStats={roleStats}
         selectedRole={selectedRole} 
         onRoleChange={setSelectedRole}
+        onManageRoles={() => setManageRolesOpen(true)}
         currentScore={currentScore}
         relevantSkillsCount={relevantSkillsCount}
         isAverage={isAverage}
+      />
+
+      <RoleManagementDialog
+        open={manageRolesOpen}
+        onOpenChange={setManageRolesOpen}
+        trackedRoles={roles}
+        onSave={saveRoles}
+        isSaving={isSaving}
+        saveError={saveError}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

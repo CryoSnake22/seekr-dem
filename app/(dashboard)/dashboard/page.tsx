@@ -34,11 +34,26 @@ export default async function DashboardPage() {
     );
   }
 
+  const defaultRoles =
+    "Software Engineer,Frontend Developer,Backend Developer,Full Stack Developer,DevOps Engineer,Data Engineer,Mobile Developer";
+
+  // User's tracked roles from DB (used for skills-gap and dashboard)
+  const { data: trackedRows } = await supabase
+    .from("user_tracked_roles")
+    .select("job_role")
+    .eq("user_id", userData.user.id)
+    .order("job_role");
+  const trackedList = trackedRows ?? [];
+  const rolesParam =
+    trackedList.length > 0
+      ? trackedList.map((r) => r.job_role).join(",")
+      : defaultRoles;
+
   // Fetch data from backend API and Supabase
   const [skillsGapRes, historyRes, trendsRes] = await Promise.all([
-    // Get skills gap analysis directly from backend API
+    // Get skills gap analysis for user's tracked roles
     fetch(
-      `${backendUrl}/api/v1/skills-gap?roles=${encodeURIComponent("Software Engineer,Frontend Developer,Backend Developer,Full Stack Developer,DevOps Engineer,Data Engineer,Mobile Developer")}`,
+      `${backendUrl}/api/v1/skills-gap?roles=${encodeURIComponent(rolesParam)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
