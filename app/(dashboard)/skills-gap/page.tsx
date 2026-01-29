@@ -1,13 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import TopGapsSection from '@/components/skills-gap/TopGapsSection'
-import { calculateMatchScore, getMissingSkills, type MarketSkill, type UserSkill } from '@/lib/utils/match-score'
-
-type MarketSkillWithRole = {
-  job_role: string
-  skill_name: string
-  priority_level: 'High' | 'Medium' | 'Low' | null
-  frequency_percentage: number
-}
 
 type RoleStats = {
   title: string
@@ -41,42 +33,70 @@ export default async function SkillsGapPage() {
 
   const userId = userData.user.id
 
-  const [skillsRes, marketRes] = await Promise.all([
-    supabase.from('user_skills').select('skill_name, proficiency').eq('user_id', userId),
-    supabase
-      .from('skills_market_data')
-      .select('job_role, skill_name, priority_level, frequency_percentage')
-      .order('frequency_percentage', { ascending: false })
-      .limit(300),
-  ])
+  // Get backend URL from environment
+  const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:8000'
+  
+  // Get session token for backend API
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
 
-  const userSkills: UserSkill[] = (skillsRes.data || []).map(skill => ({
-    name: skill.skill_name,
-    proficiency_level: skill.proficiency || undefined
-  }))
-  const marketSkills = (marketRes.data || []) as MarketSkillWithRole[]
+  if (!token) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Skills Gap Analysis</h1>
+          <p className="text-neutral-400">Identify missing skills for your target role</p>
+        </div>
+        <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-8 text-center text-neutral-400">
+          Unable to authenticate. Please sign in again.
+        </div>
+      </div>
+    )
+  }
 
-  const roleMap = marketSkills.reduce<Record<string, MarketSkill[]>>((acc, item) => {
-    const marketSkill: MarketSkill = {
-      skill_name: item.skill_name,
-      frequency_percentage: item.frequency_percentage
+  // Fetch skills gap analysis directly from backend API
+  const skillsGapRes = await fetch(
+    `${backendUrl}/api/v1/skills-gap?roles=${encodeURIComponent("Software Engineer,Frontend Developer,Backend Developer,Full Stack Developer,DevOps Engineer,Data Engineer,Mobile Developer")}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
     }
-    if (!acc[item.job_role]) {
-      return { ...acc, [item.job_role]: [marketSkill] }
+  ).then(async (res) => {
+    if (!res.ok) {
+      console.error('Backend API error:', res.status, await res.text())
+      return null
     }
-    return { ...acc, [item.job_role]: [...acc[item.job_role], marketSkill] }
-  }, {})
+    return res.json()
+  })
 
-  const roleStatsList = Object.entries(roleMap)
-    .map(([role, skills]) => {
-      const coverage = calculateMatchScore(userSkills, skills)
-      return { title: role, coverage }
+  // Get top 3 roles by match score
+  let roleStatsList: Array<{ title: string; coverage: number }> = []
+  let gapsByRole: Record<string, Gap[]> = {}
+
+  if (skillsGapRes && skillsGapRes.results) {
+    roleStatsList = skillsGapRes.results
+      .map((result: any) => ({
+        title: result.job_role,
+        coverage: result.match_score,
+      }))
+      .sort((a, b) => b.coverage - a.coverage)
+      .slice(0, 3)
+
+    // Build gapsByRole from backend response
+    skillsGapRes.results.forEach((result: any) => {
+      gapsByRole[result.job_role] = (result.missing_skills || []).map((skill: any) => ({
+        skill: skill.skill_name,
+        priority: skill.priority as 'High' | 'Medium' | 'Low',
+        demand: `${skill.frequency_percentage.toFixed(0)}% of roles`,
+      }))
     })
-    .sort((a, b) => b.coverage - a.coverage)
-    .slice(0, 3)
+  }
 
   const roles = roleStatsList.map((role) => role.title)
 
+  // Fetch history for delta calculation
   const historyRes = roles.length
     ? await supabase
         .from('match_score_history')
@@ -102,21 +122,7 @@ export default async function SkillsGapPage() {
     return { ...role, delta }
   })
 
-  const gapsByRole = roles.reduce<Record<string, Gap[]>>((acc, role) => {
-    const roleMarketSkills = roleMap[role] || []
-    const missing = getMissingSkills(userSkills, roleMarketSkills)
-
-    const gaps = missing.map<Gap>((gap) => ({
-      skill: gap.name,
-      priority: gap.priority,
-      demand: `${gap.frequency.toFixed(0)}% of roles`,
-    }))
-
-    return { ...acc, [role]: gaps }
-  }, {})
-
   const gaps = gapsByRole[roles[0]] || []
-
   const primaryGap = gaps[0]
 
   return (

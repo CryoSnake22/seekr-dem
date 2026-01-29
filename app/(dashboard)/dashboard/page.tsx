@@ -1,18 +1,5 @@
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import { createClient } from "@/lib/supabase/server";
-import {
-  calculateMatchScore,
-  getMissingSkills,
-  type MarketSkill,
-  type UserSkill,
-} from "@/lib/utils/match-score";
-
-type MarketSkillWithRole = {
-  job_role: string;
-  skill_name: string;
-  priority_level: "High" | "Medium" | "Low" | null;
-  frequency_percentage: number;
-};
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -28,24 +15,52 @@ export default async function DashboardPage() {
     );
   }
 
-  const userId = userData.user.id;
+  // Get backend URL from environment
+  const backendUrl = process.env.BACKEND_API_URL || "http://localhost:8000";
 
-  const [skillsRes, marketRes, historyRes, trendsRes] = await Promise.all([
-    supabase
-      .from("user_skills")
-      .select("skill_name, proficiency")
-      .eq("user_id", userId),
-    supabase
-      .from("skills_market_data")
-      .select("job_role, skill_name, priority_level, frequency_percentage")
-      .order("frequency_percentage", { ascending: false })
-      .limit(200),
+  // Get session token for backend API
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-8 text-center text-neutral-400">
+          Unable to authenticate. Please sign in again.
+        </div>
+      </div>
+    );
+  }
+
+  // Fetch data from backend API and Supabase
+  const [skillsGapRes, historyRes, trendsRes] = await Promise.all([
+    // Get skills gap analysis directly from backend API
+    fetch(
+      `${backendUrl}/api/v1/skills-gap?roles=${encodeURIComponent("Software Engineer,Frontend Developer,Backend Developer,Full Stack Developer,DevOps Engineer,Data Engineer,Mobile Developer")}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        // Don't cache - we want fresh data
+        cache: "no-store",
+      },
+    ).then(async (res) => {
+      if (!res.ok) {
+        console.error("Backend API error:", res.status, await res.text());
+        return null;
+      }
+      return res.json();
+    }),
+    // Fetch history from Supabase (still needed for chart)
     supabase
       .from("match_score_history")
       .select("job_role, match_score, recorded_at")
-      .eq("user_id", userId)
+      .eq("user_id", userData.user.id)
       .order("recorded_at", { ascending: false })
       .limit(20),
+    // Fetch trending skills for display
     supabase
       .from("skills_market_data")
       .select("skill_name, priority_level, frequency_percentage")
@@ -53,33 +68,52 @@ export default async function DashboardPage() {
       .limit(4),
   ]);
 
-  const userSkills: UserSkill[] = (skillsRes.data || []).map((skill) => ({
-    name: skill.skill_name,
-    proficiency_level: skill.proficiency || undefined,
-  }));
-  const marketSkills = (marketRes.data || []) as MarketSkillWithRole[];
+  // Handle backend API response
+  let roleStats: Array<{ role: string; coverage: number }> = [];
+  let roleDetails: Array<{
+    role: string;
+    coverage: number;
+    userSkillCount: number;
+    totalMarketSkills: number;
+  }> = [];
+  let gapsByRole: Record<
+    string,
+    { name: string; priority: "High" | "Medium" | "Low"; frequency: string }[]
+  > = {};
 
-  const roleMap = marketSkills.reduce<Record<string, MarketSkill[]>>(
-    (acc, item) => {
-      const marketSkill: MarketSkill = {
-        skill_name: item.skill_name,
-        frequency_percentage: item.frequency_percentage,
-      };
-      if (!acc[item.job_role]) {
-        return { ...acc, [item.job_role]: [marketSkill] };
-      }
-      return { ...acc, [item.job_role]: [...acc[item.job_role], marketSkill] };
-    },
-    {},
-  );
+  if (skillsGapRes && skillsGapRes.results) {
+    // Transform backend response to match DashboardOverview props
+    roleStats = skillsGapRes.results
+      .map((result: any) => ({
+        role: result.job_role,
+        coverage: result.match_score,
+      }))
+      .sort((a, b) => b.coverage - a.coverage);
 
-  const roleStats = Object.entries(roleMap)
-    .map(([role, skills]) => {
-      const coverage = calculateMatchScore(userSkills, skills);
-      return { role, coverage };
-    })
-    .sort((a, b) => b.coverage - a.coverage);
+    // Build roleDetails with user skill counts (relevant skills)
+    roleDetails = skillsGapRes.results.map((result: any) => ({
+      role: result.job_role,
+      coverage: result.match_score,
+      userSkillCount: result.user_skill_count || 0,
+      totalMarketSkills: result.total_market_skills || 0,
+    }));
 
+    // Build gapsByRole from backend response
+    skillsGapRes.results.forEach((result: any) => {
+      gapsByRole[result.job_role] = (result.missing_skills || []).map(
+        (skill: any) => ({
+          name: skill.skill_name,
+          priority: skill.priority as "High" | "Medium" | "Low",
+          frequency: `${skill.frequency_percentage.toFixed(0)}% of roles`,
+        }),
+      );
+    });
+  } else {
+    // Fallback: if backend is unavailable, show empty state
+    console.warn("Backend API unavailable, showing empty dashboard");
+  }
+
+  // Process history data
   const historyByRole = (historyRes.data || []).reduce<
     Record<string, number[]>
   >((acc, record) => {
@@ -89,24 +123,7 @@ export default async function DashboardPage() {
     return { ...acc, [record.job_role]: nextScores };
   }, {});
 
-  const gapsByRole = roleStats.reduce<
-    Record<
-      string,
-      { name: string; priority: "High" | "Medium" | "Low"; frequency: string }[]
-    >
-  >((acc, entry) => {
-    const roleMarketSkills = roleMap[entry.role] || [];
-    const missing = getMissingSkills(userSkills, roleMarketSkills);
-
-    const roleGaps = missing.map((gap) => ({
-      name: gap.name,
-      priority: gap.priority,
-      frequency: `${gap.frequency.toFixed(0)}% of roles`,
-    }));
-
-    return { ...acc, [entry.role]: roleGaps };
-  }, {});
-
+  // Build recommendations from gaps
   const recommendationsByRole = roleStats.reduce<
     Record<
       string,
@@ -133,6 +150,7 @@ export default async function DashboardPage() {
     return { ...acc, [entry.role]: recommendations };
   }, {});
 
+  // Process trends
   const trends = (trendsRes.data || []).map((trend) => ({
     name: trend.skill_name,
     value: `${trend.frequency_percentage.toFixed(0)}%`,
@@ -142,6 +160,7 @@ export default async function DashboardPage() {
   return (
     <DashboardOverview
       roleStats={roleStats}
+      roleDetails={roleDetails}
       historyByRole={historyByRole}
       gapsByRole={gapsByRole}
       trends={trends}

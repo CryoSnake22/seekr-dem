@@ -8,9 +8,10 @@ type MatchScoreCardProps = {
   roleLabel: string
   score: number
   deltaLabel: string
+  isAverage?: boolean
 }
 
-export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ roleLabel, score, deltaLabel }) => {
+export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ roleLabel, score, deltaLabel, isAverage = false }) => {
   return (
     <div className="col-span-1 md:col-span-8 bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity">
@@ -18,8 +19,8 @@ export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ roleLabel, score
       </div>
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div>
-          <h2 className="text-xl font-bold mb-1">Match Score</h2>
-          <p className="text-neutral-400">Based on &quot;{roleLabel}&quot; market demand</p>
+          <h2 className="text-xl font-bold mb-1">{isAverage ? 'Average Match Score' : 'Match Score'}</h2>
+          <p className="text-neutral-400">Based on {isAverage ? 'all roles' : `"${roleLabel}"`} market demand</p>
         </div>
         <div className="flex items-end gap-3 mt-6">
           <span className="text-6xl font-bold tracking-tighter">{score}<span className="text-2xl text-neutral-500 font-normal">%</span></span>

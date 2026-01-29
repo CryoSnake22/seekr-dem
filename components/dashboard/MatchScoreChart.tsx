@@ -30,6 +30,9 @@ type MatchScoreChartProps = {
   roles: string[]
   selectedRole: string
   onRoleChange: (role: string) => void
+  currentScore?: number
+  relevantSkillsCount?: number
+  isAverage?: boolean
 }
 
 const ROLE_COLORS = {
@@ -51,7 +54,14 @@ const MILESTONES = [
   { value: 95, label: '95% - Excellent', color: '#8B5CF6' },
 ]
 
-export default function MatchScoreChart({ roles, selectedRole, onRoleChange }: MatchScoreChartProps) {
+export default function MatchScoreChart({ 
+  roles, 
+  selectedRole, 
+  onRoleChange,
+  currentScore,
+  relevantSkillsCount,
+  isAverage = false
+}: MatchScoreChartProps) {
   const [data, setData] = useState<ProgressData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -201,12 +211,16 @@ export default function MatchScoreChart({ roles, selectedRole, onRoleChange }: M
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
-          <p className="text-xs text-neutral-400">Current Score</p>
-          <p className="text-2xl font-bold text-primary mt-1">{data.currentMatchScore}%</p>
+          <p className="text-xs text-neutral-400">{isAverage ? 'Average Score' : 'Current Score'}</p>
+          <p className="text-2xl font-bold text-primary mt-1">
+            {currentScore !== undefined ? `${currentScore.toFixed(1)}%` : (data?.currentMatchScore ?? 0)}%
+          </p>
         </div>
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
-          <p className="text-xs text-neutral-400">Skills</p>
-          <p className="text-2xl font-bold text-white mt-1">{data.skillsCount}</p>
+          <p className="text-xs text-neutral-400">Relevant Skills</p>
+          <p className="text-2xl font-bold text-white mt-1">
+            {relevantSkillsCount !== undefined ? relevantSkillsCount : (data?.skillsCount ?? 0)}
+          </p>
         </div>
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
           <p className="text-xs text-neutral-400">Projects</p>
