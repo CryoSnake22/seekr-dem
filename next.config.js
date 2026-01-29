@@ -7,9 +7,10 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: "2mb",
     },
+    optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

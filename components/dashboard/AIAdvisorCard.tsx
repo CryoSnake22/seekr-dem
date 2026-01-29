@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Cpu, ArrowUpRight } from "lucide-react";
-import { ButtonBeam } from "../ui/Effects";
 
 type AIAdvisorCardProps = {
   missingSkills: string[];
@@ -44,7 +43,9 @@ export const AIAdvisorCard: React.FC<AIAdvisorCardProps> = ({
         </p>
       </div>
       <button className="group relative w-full mt-5 py-2.5 bg-white text-black font-semibold rounded-lg overflow-hidden transition-transform active:scale-95">
-        <ButtonBeam />
+        <span className="absolute inset-0 overflow-hidden rounded-md">
+          <span className="absolute top-0 left-0 h-full w-[20px] -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+        </span>
         <span className="relative z-10 flex items-center justify-center gap-2">
           Generate Project Spec <ArrowUpRight className="w-4 h-4" />
         </span>

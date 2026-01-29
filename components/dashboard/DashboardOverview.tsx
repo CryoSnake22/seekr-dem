@@ -1,15 +1,26 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard'
 import { AIAdvisorCard } from '@/components/dashboard/AIAdvisorCard'
 import { SkillsGapList } from '@/components/dashboard/SkillsGapList'
 import { RecommendedProjects } from '@/components/dashboard/RecommendedProjects'
 import { MarketTrends } from '@/components/dashboard/MarketTrends'
-import MatchScoreChart from '@/components/dashboard/MatchScoreChart'
-import { RoleSelector } from '@/components/dashboard/RoleSelector'
 import { RoleManagementDialog } from '@/components/dashboard/RoleManagementDialog'
 import { useSelectedRoles } from '@/hooks/useSelectedRoles'
+
+const MatchScoreChart = dynamic(
+  () => import('@/components/dashboard/MatchScoreChart'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[320px] rounded-2xl border border-white/10 bg-[#0A0A0A] flex items-center justify-center text-neutral-500 text-sm">
+        Loading chart…
+      </div>
+    ),
+  }
+)
 
 type RoleStat = {
   role: string
