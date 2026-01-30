@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { Database } from '@/types/database'
+import { Button } from '@/components/ui/button'
+import { Plus } from '@/components/ui/Icon'
 
 type SkillRow = Database['public']['Tables']['user_skills']['Row']
 
@@ -38,6 +40,7 @@ export default function SkillsSection({ initialSkills }: { initialSkills: SkillR
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   const normalizedSkillName = useMemo(() => skillName.trim(), [skillName])
 
@@ -107,6 +110,7 @@ export default function SkillsSection({ initialSkills }: { initialSkills: SkillR
       setProficiency('Intermediate')
       setEditingId(null)
       setSuggestions([])
+      setShowForm(false)
     } catch (err) {
       setError('Unexpected error saving skill.')
     } finally {
@@ -140,12 +144,14 @@ export default function SkillsSection({ initialSkills }: { initialSkills: SkillR
     setEditingId(item.id)
     setSkillName(item.skill_name)
     setProficiency(item.proficiency || 'Intermediate')
+    setShowForm(true)
   }
 
   function cancelEdit() {
     setEditingId(null)
     setSkillName('')
     setProficiency('Intermediate')
+    setShowForm(false)
   }
 
   return (
@@ -176,28 +182,40 @@ export default function SkillsSection({ initialSkills }: { initialSkills: SkillR
                     {item.proficiency}
                   </span>
                 )}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => startEdit(item)}
-                  className="text-xs text-neutral-400 hover:text-white"
+                  className="h-auto py-0 px-2 text-xs text-neutral-400 hover:text-white"
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleDelete(item.id)}
-                  className="text-xs text-red-300 hover:text-red-200"
                   disabled={loading}
+                  className="h-auto py-0 px-2 text-xs text-red-300 hover:text-red-200"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {!showForm && (
+        <Button onClick={() => setShowForm(true)} variant="outline" className="w-full">
+          <Plus className="w-4 h-4" />
+          Add Skill
+        </Button>
+      )}
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid gap-3 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">Skill name</label>
@@ -241,25 +259,16 @@ export default function SkillsSection({ initialSkills }: { initialSkills: SkillR
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {editingId ? 'Update skill' : 'Add skill'}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm text-neutral-200 hover:bg-white/10"
-            >
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={loading} className="bg-white text-black hover:bg-neutral-200">
+              {editingId ? 'Update Skill' : 'Add Skill'}
+            </Button>
+            <Button type="button" variant="ghost" onClick={cancelEdit}>
               Cancel
-            </button>
-          )}
-        </div>
-      </form>
+            </Button>
+          </div>
+        </form>
+      )}
     </section>
   )
 }

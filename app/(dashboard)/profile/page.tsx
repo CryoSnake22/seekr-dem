@@ -3,6 +3,7 @@ import EducationSection from '@/components/profile/EducationSection'
 import ExperienceSection from '@/components/profile/ExperienceSection'
 import SkillsSection from '@/components/profile/SkillsSection'
 import ProjectsSection from '@/components/profile/ProjectsSection'
+import GitHubConnect from '@/components/profile/GitHubConnect'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -37,6 +38,8 @@ export default async function ProfilePage() {
         <h1 className="text-3xl font-bold mb-2">Golden Resume</h1>
         <p className="text-neutral-400">Build your professional profile</p>
       </div>
+
+      <GitHubConnect />
 
       <EducationSection initialEducation={educationRes.data || []} />
       <ExperienceSection initialExperience={experienceRes.data || []} />

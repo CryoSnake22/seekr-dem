@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { Database } from '@/types/database'
+import { Button } from '@/components/ui/button'
+import { Plus } from '@/components/ui/Icon'
 
 type ExperienceRow = Database['public']['Tables']['experience']['Row']
 
@@ -37,6 +39,7 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showForm, setShowForm] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -80,6 +83,7 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
       })
       setForm(emptyForm)
       setEditingId(null)
+      setShowForm(false)
     } catch (err) {
       setError('Unexpected error saving experience entry.')
     } finally {
@@ -119,11 +123,13 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
       description: item.description ?? '',
       technologies: formatTechnologies(item.technologies),
     })
+    setShowForm(true)
   }
 
   function cancelEdit() {
     setEditingId(null)
     setForm(emptyForm)
+    setShowForm(false)
   }
 
   return (
@@ -156,21 +162,24 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => startEdit(item)}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-neutral-200 hover:bg-white/10"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleDelete(item.id)}
-                    className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10"
                     disabled={loading}
+                    className="text-red-300 border-red-500/20 hover:bg-red-500/10"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
               {item.description && (
@@ -184,7 +193,15 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {!showForm && (
+        <Button onClick={() => setShowForm(true)} variant="outline" className="w-full">
+          <Plus className="w-4 h-4" />
+          Add Experience
+        </Button>
+      )}
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-neutral-300 mb-2">Company</label>
@@ -251,25 +268,16 @@ export default function ExperienceSection({ initialExperience }: { initialExperi
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {editingId ? 'Update experience' : 'Add experience'}
-          </button>
-          {editingId && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm text-neutral-200 hover:bg-white/10"
-            >
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={loading} className="bg-white text-black hover:bg-neutral-200">
+              {editingId ? 'Update Experience' : 'Add Experience'}
+            </Button>
+            <Button type="button" variant="ghost" onClick={cancelEdit}>
               Cancel
-            </button>
-          )}
-        </div>
-      </form>
+            </Button>
+          </div>
+        </form>
+      )}
     </section>
   )
 }

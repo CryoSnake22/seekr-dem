@@ -12,6 +12,7 @@ import {
   User,
   FileText,
   MessageSquare,
+  Target,
 } from "@/components/ui/Icon";
 
 export const Sidebar: React.FC = () => {
@@ -29,6 +30,12 @@ export const Sidebar: React.FC = () => {
       href: "/resume",
       icon: FileText,
       label: "Resume",
+    },
+    {
+      id: "jobs",
+      href: "/jobs",
+      icon: Target,
+      label: "Job Match",
     },
     {
       id: "ai-chat",
