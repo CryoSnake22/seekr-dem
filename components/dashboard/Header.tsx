@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell } from '@/components/ui/Icon';
 import { UserMenu } from './UserMenu';
 
 interface HeaderProps {

@@ -1,17 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts'
+import { useMemo } from 'react'
+import { LineChart, type ChartDataPoint } from '@/components/charts/LineChart'
 import { RoleSelector } from '@/components/dashboard/RoleSelector'
 
 interface HistoryPoint {
@@ -38,6 +28,10 @@ type MatchScoreChartProps = {
   currentScore?: number
   relevantSkillsCount?: number
   isAverage?: boolean
+  historyData?: ProgressData
+  skillsCount?: number
+  projectsCount?: number
+  daysActive?: number
 }
 
 const ROLE_COLORS: Record<string, string> = {
@@ -63,39 +57,24 @@ const MILESTONES = [
   { value: 95, label: '95% - Excellent', color: '#8B5CF6' },
 ]
 
-export default function MatchScoreChart({ 
-  roles, 
+export default function MatchScoreChart({
+  roles,
   roleStats = [],
-  selectedRole, 
+  selectedRole,
   onRoleChange,
   onManageRoles,
   currentScore,
   relevantSkillsCount,
-  isAverage = false
+  isAverage = false,
+  historyData,
+  skillsCount = 0,
+  projectsCount = 0,
+  daysActive = 0
 }: MatchScoreChartProps) {
-  const [data, setData] = useState<ProgressData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const data = historyData
+  const loading = false
+  const error = !historyData ? 'No data available' : ''
   const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
-
-  useEffect(() => {
-    async function fetchProgress() {
-      try {
-        const response = await fetch('/api/progress', { cache: 'no-store' })
-        if (!response.ok) {
-          throw new Error('Failed to fetch progress data')
-        }
-        const result = await response.json()
-        setData(result)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load progress')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProgress()
-  }, [])
 
   if (loading) {
     return (
@@ -250,74 +229,42 @@ export default function MatchScoreChart({
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
           <p className="text-xs text-neutral-400">Relevant Skills</p>
           <p className="text-2xl font-bold text-white mt-1">
-            {relevantSkillsCount !== undefined ? relevantSkillsCount : (data?.skillsCount ?? 0)}
+            {relevantSkillsCount !== undefined ? relevantSkillsCount : skillsCount}
           </p>
         </div>
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
           <p className="text-xs text-neutral-400">Projects</p>
-          <p className="text-2xl font-bold text-white mt-1">{data.projectsCount}</p>
+          <p className="text-2xl font-bold text-white mt-1">{projectsCount}</p>
         </div>
         <div className="rounded-lg border border-white/5 bg-white/5 p-4">
           <p className="text-xs text-neutral-400">Days Active</p>
-          <p className="text-2xl font-bold text-white mt-1">{data.daysActive}</p>
+          <p className="text-2xl font-bold text-white mt-1">{daysActive}</p>
         </div>
       </div>
 
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-            <XAxis
-              dataKey="date"
-              stroke="#9CA3AF"
-              style={{ fontSize: '12px' }}
-              tickFormatter={(value) => dateFormatter.format(new Date(value))}
-            />
-            <YAxis
-              domain={[0, 100]}
-              stroke="#9CA3AF"
-              style={{ fontSize: '12px' }}
-              tickFormatter={(value) => `${Number(value).toFixed(1)}%`}
-              label={{ value: 'Match Score (%)', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: '#1F2937',
-                border: '1px solid #374151',
-                borderRadius: '8px',
-                color: '#F9FAFB',
-              }}
-              labelStyle={{ color: '#9CA3AF' }}
-              labelFormatter={(value) => dateFormatter.format(new Date(value))}
-              formatter={(value: number, name: string) => [`${Number(value).toFixed(1)}%`, name]}
-            />
-            <Legend
-              wrapperStyle={{ fontSize: '12px', color: '#9CA3AF', width: '100%', whiteSpace: 'normal' }}
-              formatter={(value) => <span className="inline-block mr-4 mb-1">{value}</span>}
-            />
-            {MILESTONES.map((milestone) => (
-              <ReferenceLine
-                key={milestone.value}
-                y={milestone.value}
-                stroke={milestone.color}
-                strokeDasharray="3 3"
-                strokeOpacity={0.3}
-              />
-            ))}
-            {visibleRoles.map((role, index) => (
-              <Line
-                key={role}
-                type="monotone"
-                dataKey={role}
-                stroke={getRoleColor(role, index)}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      <LineChart
+        data={chartData as ChartDataPoint[]}
+        lines={visibleRoles.map((role, index) => ({
+          dataKey: role,
+          stroke: getRoleColor(role, index),
+          strokeWidth: 2,
+        }))}
+        referenceLines={MILESTONES.map(milestone => ({
+          y: milestone.value,
+          stroke: milestone.color,
+          strokeDasharray: '3 3',
+          strokeOpacity: 0.3,
+        }))}
+        xAxisFormatter={(date) => dateFormatter.format(date)}
+        yAxisFormatter={(value) => `${value.toFixed(1)}%`}
+        tooltipFormatter={(value, name) => [`${value.toFixed(1)}%`, name]}
+        tooltipLabelFormatter={(date) => dateFormatter.format(date)}
+        yDomain={[0, 100]}
+        height={320}
+        showGrid={true}
+        showLegend={true}
+        yAxisLabel="Match Score (%)"
+      />
 
       <div className="flex flex-wrap gap-4 text-xs">
         {MILESTONES.map((milestone) => (

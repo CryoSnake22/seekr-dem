@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Check, ChevronDown, Settings2 } from 'lucide-react'
+import { Check, ChevronDown, Settings2 } from '@/components/ui/Icon'
 import { cn } from '@/lib/utils'
 
 type RoleSelectorProps = {

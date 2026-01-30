@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Compass, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Compass, Mail, Lock, User, AlertCircle, CheckCircle2 } from '@/components/ui/Icon'
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('')

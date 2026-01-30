@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Terminal } from 'lucide-react';
+import { Terminal } from '@/components/ui/Icon';
 
 export const DetailsSection: React.FC = () => {
     return (
@@ -10,12 +9,8 @@ export const DetailsSection: React.FC = () => {
             <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6 }}
-                    className="space-y-8"
+                <div
+                    className="space-y-8 animate-slide-in-left"
                 >
                     <h2 className="text-3xl md:text-4xl font-bold leading-tight">
                         Your personal <span className="text-primary">Career API</span>.
@@ -41,14 +36,10 @@ export const DetailsSection: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6 }}
-                    className="relative"
+                <div
+                    className="relative animate-slide-in-right"
                 >
                      {/* Abstract Visual Representation of Data Processing */}
                      <div className="relative z-10 glass-card p-1 rounded-2xl border border-white/10">
@@ -79,7 +70,7 @@ export const DetailsSection: React.FC = () => {
                      </div>
                      {/* Decor elements */}
                      <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 blur-[80px] rounded-full" />
-                </motion.div>
+                </div>
             </div>
         </section>
     )

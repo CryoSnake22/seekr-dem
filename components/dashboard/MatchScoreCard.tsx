@@ -1,16 +1,21 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { BarChart3, ArrowUpRight } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { BarChart3, ArrowUpRight } from "@/components/ui/Icon";
 
 type MatchScoreCardProps = {
-  roleLabel: string
-  score: number
-  deltaLabel: string
-  isAverage?: boolean
-}
+  roleLabel: string;
+  score: number;
+  deltaLabel: string;
+  isAverage?: boolean;
+};
 
-export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ roleLabel, score, deltaLabel, isAverage = false }) => {
+export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({
+  roleLabel,
+  score,
+  deltaLabel,
+  isAverage = false,
+}) => {
   const [displayWidth, setDisplayWidth] = useState(0);
 
   useEffect(() => {
@@ -19,16 +24,20 @@ export const MatchScoreCard: React.FC<MatchScoreCardProps> = ({ roleLabel, score
 
   return (
     <div className="col-span-1 md:col-span-8 bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-30 transition-opacity">
-        <BarChart3 className="w-40 h-40 text-primary" />
-      </div>
       <div className="relative z-10 flex flex-col h-full justify-between">
         <div>
-          <h2 className="text-xl font-bold mb-1">{isAverage ? 'Average Match Score' : 'Match Score'}</h2>
-          <p className="text-neutral-400">Based on {isAverage ? 'all roles' : `"${roleLabel}"`} market demand</p>
+          <h2 className="text-xl font-bold mb-1">
+            {isAverage ? "Average Match Score" : "Match Score"}
+          </h2>
+          <p className="text-neutral-400">
+            Based on {isAverage ? "all roles" : `"${roleLabel}"`} market demand
+          </p>
         </div>
         <div className="flex items-end gap-3 mt-6">
-          <span className="text-6xl font-bold tracking-tighter">{score}<span className="text-2xl text-neutral-500 font-normal">%</span></span>
+          <span className="text-6xl font-bold tracking-tighter">
+            {score}
+            <span className="text-2xl text-neutral-500 font-normal">%</span>
+          </span>
           <div className="mb-2 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-xs font-medium flex items-center gap-1">
             <ArrowUpRight className="w-3.5 h-3.5" /> {deltaLabel}
           </div>

@@ -12,7 +12,7 @@ import {
   User,
   FileText,
   MessageSquare,
-} from "lucide-react";
+} from "@/components/ui/Icon";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();

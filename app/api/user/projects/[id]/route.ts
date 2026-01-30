@@ -55,7 +55,8 @@ function normalizeProjectUpdate(body: Record<string, unknown> | null): ProjectUp
   return updates
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -73,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const { data, error } = await supabase
     .from('projects')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
     .select()
     .single()
@@ -85,7 +86,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   // Update project skills if provided
   if (body && Array.isArray(body.project_skills)) {
     try {
-      await updateProjectSkills(supabase, params.id, body.project_skills)
+      await updateProjectSkills(supabase, id, body.project_skills)
     } catch (skillsError) {
       console.error('Error updating project skills:', skillsError)
       // Don't fail the request if skills fail to update
@@ -95,7 +96,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return jsonSuccess<ProjectRow>(data)
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -106,12 +108,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   const { error } = await supabase
     .from('projects')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
 
   if (error) {
     return jsonError(error.message, 500, error.code)
   }
 
-  return jsonSuccess({ id: params.id })
+  return jsonSuccess({ id })
 }

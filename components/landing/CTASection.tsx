@@ -2,8 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from '@/components/ui/Icon';
 import { ButtonBeam } from '../ui/Effects';
 
 export const CTASection: React.FC = () => {
@@ -12,12 +11,8 @@ export const CTASection: React.FC = () => {
             {/* Background Glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5 }}
-                className="relative z-10 max-w-3xl mx-auto text-center space-y-8"
+            <div
+                className="relative z-10 max-w-3xl mx-auto text-center space-y-8 animate-scale-in"
             >
                 <h2 className="text-4xl md:text-6xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
                     Get Hired Faster.
@@ -50,7 +45,7 @@ export const CTASection: React.FC = () => {
                         <CheckCircle2 className="w-4 h-4 text-primary" /> Cancel anytime
                     </div>
                 </div>
-            </motion.div>
+            </div>
         </section>
     )
 }

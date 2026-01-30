@@ -2,8 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Check, CheckCircle2, Zap } from 'lucide-react';
+import { Check, CheckCircle2, Zap } from '@/components/ui/Icon';
 
 export const PricingSection: React.FC = () => {
     return (
@@ -15,12 +14,8 @@ export const PricingSection: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {/* Free Tier */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.5 }}
-                    className="glass-card p-8 rounded-2xl flex flex-col relative"
+                <div
+                    className="glass-card p-8 rounded-2xl flex flex-col relative animate-fade-in-up"
                 >
                     <div className="mb-4">
                         <h3 className="text-xl font-bold mb-2">Seekr Starter</h3>
@@ -47,15 +42,11 @@ export const PricingSection: React.FC = () => {
                     >
                         Start for Free
                     </Link>
-                </motion.div>
+                </div>
 
                 {/* Pro Tier */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="relative p-8 rounded-2xl flex flex-col bg-neutral-900 border border-primary/30"
+                <div
+                    className="relative p-8 rounded-2xl flex flex-col bg-neutral-900 border border-primary/30 animate-fade-in-up animation-delay-100"
                 >
                      {/* Glow Effect */}
                      <div className="absolute inset-0 bg-primary/5 rounded-2xl pointer-events-none" />
@@ -92,7 +83,7 @@ export const PricingSection: React.FC = () => {
                     >
                         Get Hired Faster
                     </Link>
-                </motion.div>
+                </div>
             </div>
         </section>
     )

@@ -50,7 +50,7 @@ export default async function DashboardPage() {
       : defaultRoles;
 
   // Fetch data from backend API and Supabase
-  const [skillsGapRes, historyRes, trendsRes] = await Promise.all([
+  const [skillsGapRes, historyRes, trendsRes, skillsCountRes, projectsCountRes] = await Promise.all([
     // Get skills gap analysis for user's tracked roles
     fetch(
       `${backendUrl}/api/v1/skills-gap?roles=${encodeURIComponent(rolesParam)}`,
@@ -58,8 +58,8 @@ export default async function DashboardPage() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        // Don't cache - we want fresh data
-        cache: "no-store",
+        // Cache for 5 minutes
+        next: { revalidate: 300 },
       },
     ).then(async (res) => {
       if (!res.ok) {
@@ -68,19 +68,28 @@ export default async function DashboardPage() {
       }
       return res.json();
     }),
-    // Fetch history from Supabase (still needed for chart)
+    // Fetch history from Supabase (for chart)
     supabase
       .from("match_score_history")
       .select("job_role, match_score, recorded_at")
       .eq("user_id", userData.user.id)
-      .order("recorded_at", { ascending: false })
-      .limit(20),
+      .order("recorded_at", { ascending: true }),
     // Fetch trending skills for display
     supabase
       .from("skills_market_data")
       .select("skill_name, priority_level, frequency_percentage")
       .order("frequency_percentage", { ascending: false })
       .limit(4),
+    // Fetch user skills count
+    supabase
+      .from("user_skills")
+      .select("id", { count: "exact" })
+      .eq("user_id", userData.user.id),
+    // Fetch projects count
+    supabase
+      .from("projects")
+      .select("id", { count: "exact" })
+      .eq("user_id", userData.user.id),
   ]);
 
   // Handle backend API response
@@ -103,7 +112,7 @@ export default async function DashboardPage() {
         role: result.job_role,
         coverage: result.match_score,
       }))
-      .sort((a, b) => b.coverage - a.coverage);
+      .sort((a: { coverage: number }, b: { coverage: number }) => b.coverage - a.coverage);
 
     // Build roleDetails with user skill counts (relevant skills)
     roleDetails = skillsGapRes.results.map((result: any) => ({
@@ -128,15 +137,48 @@ export default async function DashboardPage() {
     console.warn("Backend API unavailable, showing empty dashboard");
   }
 
-  // Process history data
+  // Format history data for chart (like /api/progress endpoint)
   const historyByRole = (historyRes.data || []).reduce<
-    Record<string, number[]>
+    Record<string, Array<{ date: string; score: number }>>
   >((acc, record) => {
-    const nextScores = acc[record.job_role]
-      ? [...acc[record.job_role], record.match_score]
-      : [record.match_score];
-    return { ...acc, [record.job_role]: nextScores };
+    const recordedAt = new Date(record.recorded_at);
+    const dateKey = recordedAt.toISOString().slice(0, 10);
+    const score = Number(record.match_score);
+    if (!acc[record.job_role]) {
+      acc[record.job_role] = [];
+    }
+    acc[record.job_role].push({
+      date: dateKey,
+      score,
+    });
+    return acc;
   }, {});
+
+  // Calculate days active (from first recorded activity)
+  const firstActivity =
+    historyRes.data && historyRes.data.length > 0
+      ? new Date(historyRes.data[0].recorded_at)
+      : new Date();
+  const daysActive = Math.floor(
+    (Date.now() - firstActivity.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  // Get current match score (highest among all roles)
+  const latestScores: Record<string, number> = {};
+  for (const role in historyByRole) {
+    const scores = historyByRole[role];
+    if (scores.length > 0) {
+      latestScores[role] = scores[scores.length - 1].score;
+    }
+  }
+  const currentMatchScore =
+    Object.values(latestScores).length > 0
+      ? Math.max(...Object.values(latestScores))
+      : 0;
+
+  // Get counts
+  const skillsCount = skillsCountRes.count || 0;
+  const projectsCount = projectsCountRes.count || 0;
 
   // Build recommendations from gaps
   const recommendationsByRole = roleStats.reduce<
@@ -180,6 +222,10 @@ export default async function DashboardPage() {
       gapsByRole={gapsByRole}
       trends={trends}
       recommendationsByRole={recommendationsByRole}
+      currentMatchScore={currentMatchScore}
+      skillsCount={skillsCount}
+      projectsCount={projectsCount}
+      daysActive={daysActive}
     />
   );
 }

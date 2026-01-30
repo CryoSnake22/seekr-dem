@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Database, Code2, Target, TrendingUp } from 'lucide-react';
+import { Database, Code2, Target, TrendingUp } from '@/components/ui/Icon';
 import { GlowCard } from '../ui/Effects';
 
 export const ValuePropSection: React.FC = () => {
@@ -40,28 +39,22 @@ export const ValuePropSection: React.FC = () => {
   return (
     <section id="how-it-works" className="py-24 px-4 w-full max-w-7xl mx-auto relative z-20 bg-background/50 backdrop-blur-sm md:backdrop-blur-none md:bg-transparent">
       <div className="mb-16 md:text-center max-w-2xl mx-auto">
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           viewport={{ once: true, margin: "-100px" }}
-           transition={{ duration: 0.5 }}
+        <div
+           className="animate-fade-in-up"
         >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Don&apos;t fly blind.</h2>
             <p className="text-textSecondary">
                 Most CS grads apply to 150+ jobs with no feedback. Seekr gives you the data to apply to 50 jobs and get 5 interviews.
             </p>
-        </motion.div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {cards.map((card, idx) => (
-          <motion.div
+          <div
             key={idx}
-            className={`${card.cols}`}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.5, delay: idx * 0.1 }}
+            className={`${card.cols} animate-fade-in-up`}
+            style={{ animationDelay: `${idx * 100}ms` }}
           >
             <GlowCard className={`flex flex-col justify-between min-h-[240px]`}>
                 <div>
@@ -79,7 +72,7 @@ export const ValuePropSection: React.FC = () => {
                 </span>
                 </div>
             </GlowCard>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

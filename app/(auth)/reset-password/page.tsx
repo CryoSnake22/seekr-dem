@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Compass, Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { Compass, Mail, AlertCircle, CheckCircle2, ArrowLeft } from '@/components/ui/Icon'
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')

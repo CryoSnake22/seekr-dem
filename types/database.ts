@@ -121,6 +121,7 @@ export interface Database {
           technologies: string[] | null
           github_url: string | null
           demo_url: string | null
+          github_synced: boolean | null
           created_at: string
           updated_at: string
         }
@@ -131,6 +132,7 @@ export interface Database {
           technologies?: string[] | null
           github_url?: string | null
           demo_url?: string | null
+          github_synced?: boolean | null
         }
         Update: {
           title?: string
@@ -138,6 +140,7 @@ export interface Database {
           technologies?: string[] | null
           github_url?: string | null
           demo_url?: string | null
+          github_synced?: boolean | null
         }
       }
       skills_market_data: {

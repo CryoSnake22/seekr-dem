@@ -81,7 +81,7 @@ export default async function SkillsGapPage() {
         title: result.job_role,
         coverage: result.match_score,
       }))
-      .sort((a, b) => b.coverage - a.coverage)
+      .sort((a: { coverage: number }, b: { coverage: number }) => b.coverage - a.coverage)
       .slice(0, 3)
 
     // Build gapsByRole from backend response

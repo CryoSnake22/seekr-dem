@@ -2,8 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight, BrainCircuit, TrendingUp } from 'lucide-react';
+import { ArrowRight, BrainCircuit, TrendingUp } from '@/components/ui/Icon';
 import { ButtonBeam, BeamTexture } from '../ui/Effects';
 
 export const HeroSection: React.FC = () => {
@@ -12,43 +11,31 @@ export const HeroSection: React.FC = () => {
       <BeamTexture />
 
       <div className="relative z-10 text-center max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-primary mb-8"
+        <div
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-primary mb-8 animate-fade-in-up"
         >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
           </span>
           Live Job Market Data for 2026
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-neutral-500"
+        <h1
+          className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-neutral-500 animate-fade-in-up animation-delay-100"
         >
           Stop Guessing. <br />
           Start Learning <span className="text-white">What Matters.</span>
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl text-textSecondary max-w-2xl mx-auto mb-10 leading-relaxed"
+        <p
+          className="text-lg md:text-xl text-textSecondary max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-up animation-delay-200"
         >
           6.1% unemployment for CS grads is a choice. Seekr analyzes 100+ job postings weekly to tell you exactly which skills to prioritize and what to build.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        <div
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up animation-delay-300"
         >
           <Link
             href="/signup"
@@ -65,15 +52,12 @@ export const HeroSection: React.FC = () => {
           >
             View Live Demo
           </Link>
-        </motion.div>
+        </div>
       </div>
 
       {/* Hero Visual */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-        className="mt-20 w-full max-w-5xl mx-auto relative group z-10"
+      <div
+        className="mt-20 w-full max-w-5xl mx-auto relative group z-10 animate-fade-in-up animation-delay-200"
       >
         <div className="absolute -inset-1 bg-gradient-to-b from-primary/20 to-transparent opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500" />
         <div className="relative glass-card rounded-xl border border-white/10 overflow-hidden shadow-2xl">
@@ -156,7 +140,7 @@ export const HeroSection: React.FC = () => {
                 </div>
            </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 };

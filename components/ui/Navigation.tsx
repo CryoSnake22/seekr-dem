@@ -2,15 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Compass } from 'lucide-react';
+import { Compass } from '@/components/ui/Icon';
 
 export const Navbar: React.FC = () => {
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center pt-6 px-4"
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center pt-6 px-4 animate-fade-in-down"
     >
       <div className="glass-card rounded-full px-6 py-3 flex items-center justify-between w-full max-w-5xl bg-black/50 border border-white/10 backdrop-blur-md">
         <Link href="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
@@ -38,6 +35,6 @@ export const Navbar: React.FC = () => {
           </Link>
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 };

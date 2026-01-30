@@ -1,14 +1,13 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateMatchScoreForRole } from '@/lib/utils/match-score'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobRole: string } }
+  { params }: { params: Promise<{ jobRole: string }> }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
 
     // Get authenticated user
     const {
@@ -19,7 +18,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const jobRole = decodeURIComponent(params.jobRole)
+    const { jobRole: jobRoleParam } = await params
+    const jobRole = decodeURIComponent(jobRoleParam)
 
     // Calculate match score for the specified role
     const result = await calculateMatchScoreForRole(

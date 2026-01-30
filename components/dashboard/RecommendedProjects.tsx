@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { LayoutDashboard, Plus } from 'lucide-react';
+import { LayoutDashboard, Plus } from '@/components/ui/Icon';
 
 type Recommendation = {
   title: string

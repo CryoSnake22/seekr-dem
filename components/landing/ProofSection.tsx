@@ -1,21 +1,16 @@
 'use client'
 
 import React from 'react';
-import { motion } from 'framer-motion';
 
 export const ProofSection: React.FC = () => {
     return (
         <section className="py-24 px-4 w-full max-w-7xl mx-auto z-10 relative">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.5 }}
-                className="text-center mb-16"
+            <div
+                className="text-center mb-16 animate-fade-in-up"
             >
                 <h2 className="text-3xl font-bold mb-4">Validate your competence.</h2>
                 <p className="text-textSecondary">Join students landing jobs at top startups.</p>
-            </motion.div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
@@ -38,13 +33,10 @@ export const ProofSection: React.FC = () => {
                         stat: "3 offers received"
                     }
                 ].map((t, i) => (
-                    <motion.div
+                    <div
                         key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                        className="glass-card p-6 rounded-xl flex flex-col justify-between"
+                        className="glass-card p-6 rounded-xl flex flex-col justify-between animate-fade-in-up"
+                        style={{ animationDelay: `${i * 100}ms` }}
                     >
                         <div className="mb-6">
                             <div className="flex gap-1 mb-4">
@@ -63,7 +55,7 @@ export const ProofSection: React.FC = () => {
                                 {t.stat}
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
             </div>
         </section>

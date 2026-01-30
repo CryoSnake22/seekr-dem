@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from '@/components/ui/Icon';
 
 type Trend = {
   name: string

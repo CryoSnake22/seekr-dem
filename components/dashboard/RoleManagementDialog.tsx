@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X } from '@/components/ui/Icon'
 
 const FALLBACK_ROLES = [
   'Software Engineer',

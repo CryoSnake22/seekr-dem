@@ -60,7 +60,8 @@ function normalizeExperienceUpdate(body: Record<string, unknown> | null): Experi
   return updates
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -78,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   const { data, error } = await supabase
     .from('experience')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
     .select()
     .single()
@@ -90,7 +91,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return jsonSuccess<ExperienceRow>(data)
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -101,12 +103,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
   const { error } = await supabase
     .from('experience')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
 
   if (error) {
     return jsonError(error.message, 500, error.code)
   }
 
-  return jsonSuccess({ id: params.id })
+  return jsonSuccess({ id })
 }

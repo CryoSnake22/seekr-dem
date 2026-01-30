@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Compass, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Compass, Mail, Lock, AlertCircle } from '@/components/ui/Icon'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')

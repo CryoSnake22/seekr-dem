@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Cpu, ArrowUpRight } from "lucide-react";
+import { Cpu, ArrowUpRight } from "@/components/ui/Icon";
 
 type AIAdvisorCardProps = {
   missingSkills: string[];

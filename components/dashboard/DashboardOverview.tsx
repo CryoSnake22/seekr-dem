@@ -3,13 +3,9 @@
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import { MatchScoreCard } from '@/components/dashboard/MatchScoreCard'
-import { AIAdvisorCard } from '@/components/dashboard/AIAdvisorCard'
-import { SkillsGapList } from '@/components/dashboard/SkillsGapList'
-import { RecommendedProjects } from '@/components/dashboard/RecommendedProjects'
-import { MarketTrends } from '@/components/dashboard/MarketTrends'
-import { RoleManagementDialog } from '@/components/dashboard/RoleManagementDialog'
 import { useSelectedRoles } from '@/hooks/useSelectedRoles'
 
+// Lazy load chart (above fold, but heavy)
 const MatchScoreChart = dynamic(
   () => import('@/components/dashboard/MatchScoreChart'),
   {
@@ -19,6 +15,51 @@ const MatchScoreChart = dynamic(
         Loading chart…
       </div>
     ),
+  }
+)
+
+// Lazy load below-fold components
+const AIAdvisorCard = dynamic(
+  () => import('@/components/dashboard/AIAdvisorCard').then(mod => ({ default: mod.AIAdvisorCard })),
+  {
+    loading: () => (
+      <div className="h-[200px] rounded-2xl border border-white/10 bg-[#0A0A0A] animate-pulse" />
+    ),
+  }
+)
+
+const SkillsGapList = dynamic(
+  () => import('@/components/dashboard/SkillsGapList').then(mod => ({ default: mod.SkillsGapList })),
+  {
+    loading: () => (
+      <div className="h-[300px] rounded-2xl border border-white/10 bg-[#0A0A0A] animate-pulse" />
+    ),
+  }
+)
+
+const MarketTrends = dynamic(
+  () => import('@/components/dashboard/MarketTrends').then(mod => ({ default: mod.MarketTrends })),
+  {
+    loading: () => (
+      <div className="h-[300px] rounded-2xl border border-white/10 bg-[#0A0A0A] animate-pulse" />
+    ),
+  }
+)
+
+const RecommendedProjects = dynamic(
+  () => import('@/components/dashboard/RecommendedProjects').then(mod => ({ default: mod.RecommendedProjects })),
+  {
+    loading: () => (
+      <div className="h-[400px] rounded-2xl border border-white/10 bg-[#0A0A0A] animate-pulse" />
+    ),
+  }
+)
+
+// Only load dialog when needed
+const RoleManagementDialog = dynamic(
+  () => import('@/components/dashboard/RoleManagementDialog').then(mod => ({ default: mod.RoleManagementDialog })),
+  {
+    ssr: false,
   }
 )
 
@@ -50,10 +91,14 @@ type RoleDetail = {
 type DashboardOverviewProps = {
   roleStats: RoleStat[]
   roleDetails?: RoleDetail[] // Detailed role info from backend
-  historyByRole: Record<string, number[]>
+  historyByRole: Record<string, Array<{ date: string; score: number }>>
   gapsByRole: Record<string, GapItem[]>
   trends: { name: string; value: string; priority: 'High' | 'Medium' | 'Low' }[]
   recommendationsByRole: Record<string, Recommendation[]>
+  currentMatchScore?: number
+  skillsCount?: number
+  projectsCount?: number
+  daysActive?: number
 }
 
 export default function DashboardOverview({
@@ -63,6 +108,10 @@ export default function DashboardOverview({
   gapsByRole,
   trends,
   recommendationsByRole,
+  currentMatchScore,
+  skillsCount,
+  projectsCount,
+  daysActive,
 }: DashboardOverviewProps) {
   const roles = useMemo(() => roleStats.map((entry) => entry.role), [roleStats])
   const [selectedRole, setSelectedRole] = useState(roles[0] ?? 'All')
@@ -86,33 +135,29 @@ export default function DashboardOverview({
   // For "All", calculate average across all roles for each history point
   const scores = useMemo(() => {
     if (selectedRole === 'All') {
-      // Get all unique dates across all roles
-      const allDates = new Set<string>()
-      Object.values(historyByRole).forEach(scores => {
-        // We need dates, but we only have scores - use index as proxy
-        // Actually, we need to reconstruct dates from history
-        // For now, let's use the scores array length as a proxy
-        // This is a limitation - we'd need dates in historyByRole to do this properly
-      })
-      // For now, calculate average of latest scores across all roles
+      // Calculate average of latest scores across all roles
       const latestScores = Object.values(historyByRole)
-        .map(roleScores => roleScores[0])
+        .map(roleScores => roleScores.length > 0 ? roleScores[roleScores.length - 1].score : undefined)
         .filter(score => score !== undefined) as number[]
-      
+
       if (latestScores.length > 0) {
         const avg = latestScores.reduce((a, b) => a + b, 0) / latestScores.length
-        const previousAvg = Object.values(historyByRole)
-          .map(roleScores => roleScores[1])
+        const previousScores = Object.values(historyByRole)
+          .map(roleScores => roleScores.length > 1 ? roleScores[roleScores.length - 2].score : undefined)
           .filter(score => score !== undefined) as number[]
-        const prevAvg = previousAvg.length > 0 
-          ? previousAvg.reduce((a, b) => a + b, 0) / previousAvg.length
+        const prevAvg = previousScores.length > 0
+          ? previousScores.reduce((a, b) => a + b, 0) / previousScores.length
           : undefined
-        
+
         return prevAvg !== undefined ? [avg, prevAvg] : [avg]
       }
       return []
     } else {
-      return historyByRole[selectedRole] || []
+      const roleHistory = historyByRole[selectedRole] || []
+      if (roleHistory.length === 0) return []
+      const latest = roleHistory[roleHistory.length - 1].score
+      const previous = roleHistory.length > 1 ? roleHistory[roleHistory.length - 2].score : undefined
+      return previous !== undefined ? [latest, previous] : [latest]
     }
   }, [selectedRole, historyByRole])
 
@@ -161,25 +206,34 @@ export default function DashboardOverview({
         <AIAdvisorCard missingSkills={missingSkills} />
       </div>
 
-      <MatchScoreChart 
-        roles={roles} 
+      <MatchScoreChart
+        roles={roles}
         roleStats={roleStats}
-        selectedRole={selectedRole} 
+        selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
         onManageRoles={() => setManageRolesOpen(true)}
         currentScore={currentScore}
         relevantSkillsCount={relevantSkillsCount}
         isAverage={isAverage}
+        historyData={{
+          currentMatchScore: currentMatchScore || 0,
+          history: historyByRole,
+          skillsCount: skillsCount || 0,
+          projectsCount: projectsCount || 0,
+          daysActive: daysActive || 0,
+        }}
       />
 
-      <RoleManagementDialog
-        open={manageRolesOpen}
-        onOpenChange={setManageRolesOpen}
-        trackedRoles={roles}
-        onSave={saveRoles}
-        isSaving={isSaving}
-        saveError={saveError}
-      />
+      {manageRolesOpen && (
+        <RoleManagementDialog
+          open={manageRolesOpen}
+          onOpenChange={setManageRolesOpen}
+          trackedRoles={roles}
+          onSave={saveRoles}
+          isSaving={isSaving}
+          saveError={saveError}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <SkillsGapList

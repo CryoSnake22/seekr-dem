@@ -42,7 +42,7 @@ function normalizeEducationUpdate(body: Record<string, unknown> | null): Educati
   return updates
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -57,10 +57,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return jsonError('Invalid education payload', 400, 'validation')
   }
 
+  const { id } = await params
+
   const { data, error } = await supabase
     .from('education')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
     .select()
     .single()
@@ -72,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return jsonSuccess<EducationRow>(data)
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   const { data: userData, error: userError } = await supabase.auth.getUser()
 
@@ -80,15 +82,17 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
     return jsonError('Unauthorized', 401, 'auth')
   }
 
+  const { id } = await params
+
   const { error } = await supabase
     .from('education')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', userData.user.id)
 
   if (error) {
     return jsonError(error.message, 500, error.code)
   }
 
-  return jsonSuccess({ id: params.id })
+  return jsonSuccess({ id })
 }
