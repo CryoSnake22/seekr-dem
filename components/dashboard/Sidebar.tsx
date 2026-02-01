@@ -8,9 +8,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Code2,
   User,
-  FileText,
   MessageSquare,
   Target,
 } from "@/components/ui/Icon";
@@ -26,22 +24,10 @@ export const Sidebar: React.FC = () => {
       label: "Overview",
     },
     {
-      id: "resume",
-      href: "/resume",
-      icon: FileText,
-      label: "Resume",
-    },
-    {
       id: "jobs",
       href: "/jobs",
       icon: Target,
-      label: "Job Match",
-    },
-    {
-      id: "ai-chat",
-      href: "/ai-chat",
-      icon: MessageSquare,
-      label: "AI Chat",
+      label: "Jobs",
     },
     {
       id: "skills-gap",
@@ -49,7 +35,12 @@ export const Sidebar: React.FC = () => {
       icon: BarChart3,
       label: "Skills Gap",
     },
-    { id: "projects", href: "/projects", icon: Code2, label: "AI Projects" },
+    {
+      id: "ai-recommendations",
+      href: "/ai-recommendations",
+      icon: MessageSquare,
+      label: "AI Recommendations",
+    },
     { id: "profile", href: "/profile", icon: User, label: "Profile" },
   ];
 

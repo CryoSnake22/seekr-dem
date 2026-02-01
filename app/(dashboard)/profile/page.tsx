@@ -4,6 +4,7 @@ import ExperienceSection from '@/components/profile/ExperienceSection'
 import SkillsSection from '@/components/profile/SkillsSection'
 import ProjectsSection from '@/components/profile/ProjectsSection'
 import GitHubConnect from '@/components/profile/GitHubConnect'
+import ResumeUpload from '@/components/profile/ResumeUpload'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -39,7 +40,10 @@ export default async function ProfilePage() {
         <p className="text-neutral-400">Build your professional profile</p>
       </div>
 
-      <GitHubConnect />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GitHubConnect />
+        <ResumeUpload />
+      </div>
 
       <EducationSection initialEducation={educationRes.data || []} />
       <ExperienceSection initialExperience={experienceRes.data || []} />

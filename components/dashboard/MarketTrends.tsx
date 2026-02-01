@@ -15,13 +15,66 @@ const priorityColor = {
   Low: 'text-neutral-400',
 }
 
-export const MarketTrends: React.FC<{ trends: Trend[] }> = ({ trends }) => {
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+  if (diffDays > 0) {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  } else if (diffHours > 0) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  } else if (diffMinutes > 0) {
+    return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+  } else {
+    return 'just now';
+  }
+}
+
+function getFreshnessIndicator(date: Date): { color: string; status: string } {
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 7) {
+    return { color: 'bg-green-500', status: 'Fresh' };
+  } else if (diffDays < 30) {
+    return { color: 'bg-yellow-500', status: 'Recent' };
+  } else {
+    return { color: 'bg-red-500', status: 'Stale' };
+  }
+}
+
+export const MarketTrends: React.FC<{
+  trends: Trend[];
+  lastUpdated?: Date | null;
+}> = ({ trends, lastUpdated }) => {
+  const freshness = lastUpdated ? getFreshnessIndicator(lastUpdated) : null;
+  const timeAgo = lastUpdated ? getTimeAgo(lastUpdated) : null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Trending Now</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Trending Now</h3>
+          {freshness && (
+            <div className="flex items-center gap-1.5 group relative">
+              <span className={`w-2 h-2 rounded-full ${freshness.color} animate-pulse`} />
+              <span className="absolute left-0 top-6 bg-black border border-white/10 rounded-lg px-2 py-1 text-xs text-neutral-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                {freshness.status} - Updated {timeAgo}
+              </span>
+            </div>
+          )}
+        </div>
         <MoreHorizontal className="w-4 h-4 text-neutral-500" />
       </div>
+
+      {lastUpdated && (
+        <div className="text-xs text-neutral-500">
+          Last updated: {timeAgo}
+        </div>
+      )}
 
       <div className="bg-[#0A0A0A] border border-white/5 rounded-xl p-4 space-y-4">
         {trends.length === 0 && (

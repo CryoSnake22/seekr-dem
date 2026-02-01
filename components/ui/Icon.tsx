@@ -31,6 +31,7 @@ export type IconName =
   | 'Target'
   | 'Terminal'
   | 'TrendingUp'
+  | 'Upload'
   | 'User'
   | 'X'
   | 'Zap'
@@ -230,6 +231,13 @@ const iconPaths: Record<IconName, React.ReactNode> = {
       <polyline points="16 7 22 7 22 13" />
     </>
   ),
+  Upload: (
+    <>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" x2="12" y1="3" y2="15" />
+    </>
+  ),
   User: (
     <>
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -305,6 +313,7 @@ export const Settings2 = (props: Omit<IconProps, 'name'>) => <Icon name="Setting
 export const Target = (props: Omit<IconProps, 'name'>) => <Icon name="Target" {...props} />
 export const Terminal = (props: Omit<IconProps, 'name'>) => <Icon name="Terminal" {...props} />
 export const TrendingUp = (props: Omit<IconProps, 'name'>) => <Icon name="TrendingUp" {...props} />
+export const Upload = (props: Omit<IconProps, 'name'>) => <Icon name="Upload" {...props} />
 export const User = (props: Omit<IconProps, 'name'>) => <Icon name="User" {...props} />
 export const X = (props: Omit<IconProps, 'name'>) => <Icon name="X" {...props} />
 export const Zap = (props: Omit<IconProps, 'name'>) => <Icon name="Zap" {...props} />

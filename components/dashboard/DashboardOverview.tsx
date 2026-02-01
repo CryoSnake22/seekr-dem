@@ -94,6 +94,7 @@ type DashboardOverviewProps = {
   historyByRole: Record<string, Array<{ date: string; score: number }>>
   gapsByRole: Record<string, GapItem[]>
   trends: { name: string; value: string; priority: 'High' | 'Medium' | 'Low' }[]
+  marketDataLastUpdated?: Date | null
   recommendationsByRole: Record<string, Recommendation[]>
   currentMatchScore?: number
   skillsCount?: number
@@ -107,6 +108,7 @@ export default function DashboardOverview({
   historyByRole,
   gapsByRole,
   trends,
+  marketDataLastUpdated,
   recommendationsByRole,
   currentMatchScore,
   skillsCount,
@@ -241,7 +243,7 @@ export default function DashboardOverview({
           gapsByRole={gapsByRole}
           selectedRole={selectedRole}
         />
-        <MarketTrends trends={trends} />
+        <MarketTrends trends={trends} lastUpdated={marketDataLastUpdated} />
       </div>
 
       <div className="lg:col-span-2">

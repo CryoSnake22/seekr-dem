@@ -1,5 +1,6 @@
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,6 +14,19 @@ export default async function DashboardPage() {
         </div>
       </div>
     );
+  }
+
+  // Check if user has completed onboarding
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('onboarding_completed')
+    .eq('id', userData.user.id)
+    .single();
+
+  // Redirect to onboarding if not completed
+  // Only redirect if column exists and is explicitly false
+  if (userProfile && userProfile.onboarding_completed === false) {
+    redirect('/onboarding');
   }
 
   // Get backend URL from environment
@@ -77,7 +91,7 @@ export default async function DashboardPage() {
     // Fetch trending skills for display
     supabase
       .from("skills_market_data")
-      .select("skill_name, priority_level, frequency_percentage")
+      .select("skill_name, priority_level, frequency_percentage, last_updated")
       .order("frequency_percentage", { ascending: false })
       .limit(4),
     // Fetch user skills count
@@ -214,6 +228,16 @@ export default async function DashboardPage() {
     priority: (trend.priority_level || "Low") as "High" | "Medium" | "Low",
   }));
 
+  // Get most recent last_updated timestamp from trends data
+  const marketDataLastUpdated = (trendsRes.data || []).reduce<Date | null>(
+    (latest, trend) => {
+      if (!trend.last_updated) return latest;
+      const trendDate = new Date(trend.last_updated);
+      return !latest || trendDate > latest ? trendDate : latest;
+    },
+    null
+  );
+
   return (
     <DashboardOverview
       roleStats={roleStats}
@@ -221,6 +245,7 @@ export default async function DashboardPage() {
       historyByRole={historyByRole}
       gapsByRole={gapsByRole}
       trends={trends}
+      marketDataLastUpdated={marketDataLastUpdated}
       recommendationsByRole={recommendationsByRole}
       currentMatchScore={currentMatchScore}
       skillsCount={skillsCount}
